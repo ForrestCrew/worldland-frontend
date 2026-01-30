@@ -5,6 +5,7 @@ import { RainbowKitProvider, darkTheme } from '@rainbow-me/rainbowkit';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { wagmiConfig } from '@/config/wagmi.config';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 // Import RainbowKit styles
 import '@rainbow-me/rainbowkit/styles.css';
@@ -49,8 +50,11 @@ export function Web3Provider({ children }: Web3ProviderProps) {
           locale="ko" // Korean localization
           modalSize="compact"
         >
-          {/* Only render children after mount to prevent hydration issues */}
-          {mounted ? children : null}
+          {/* AuthProvider must be inside WagmiProvider to use wagmi hooks */}
+          <AuthProvider>
+            {/* Only render children after mount to prevent hydration issues */}
+            {mounted ? children : null}
+          </AuthProvider>
         </RainbowKitProvider>
       </QueryClientProvider>
     </WagmiProvider>

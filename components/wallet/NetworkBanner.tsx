@@ -1,7 +1,7 @@
 'use client';
 
 import { useNetworkGuard } from '@/hooks/useNetworkGuard';
-import { bscTestnet, bsc } from '@/config/chains';
+import { sepolia, mainnet } from '@/config/chains';
 
 /**
  * Persistent warning banner for wrong network
@@ -27,7 +27,7 @@ export function NetworkBanner() {
 
   // Get expected network name for display
   const expectedNetworkName =
-    expectedChainId === bsc.id ? 'BNB Chain' : 'BSC Testnet';
+    expectedChainId === mainnet.id ? 'Ethereum Mainnet' : 'Sepolia Testnet';
 
   // Get current network name (if known)
   const currentNetworkName = currentChainId
@@ -77,7 +77,8 @@ export function NetworkBanner() {
  */
 function getNetworkName(chainId: number): string {
   const networks: Record<number, string> = {
-    1: 'Ethereum',
+    1: 'Ethereum Mainnet',
+    11155111: 'Sepolia Testnet',
     56: 'BNB Chain',
     97: 'BSC Testnet',
     137: 'Polygon',
@@ -85,7 +86,6 @@ function getNetworkName(chainId: number): string {
     10: 'Optimism',
     43114: 'Avalanche',
     250: 'Fantom',
-    // Add more as needed
   };
   return networks[chainId] || `Chain ${chainId}`;
 }

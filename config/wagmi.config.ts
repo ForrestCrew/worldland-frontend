@@ -1,26 +1,39 @@
-import { connectorsForWallets } from '@rainbow-me/rainbowkit';
+import { getDefaultConfig } from '@rainbow-me/rainbowkit';
 import {
   metaMaskWallet,
   walletConnectWallet,
   coinbaseWallet,
 } from '@rainbow-me/rainbowkit/wallets';
-import { createConfig, http } from 'wagmi';
-import { supportedChains, bscTestnet, bsc, mainnet } from './chains';
+import { supportedChains, bscTestnet, bsc } from './chains';
+import { http } from 'wagmi';
 
 // WalletConnect project ID - required for WalletConnect v2
 // User should set this in .env.local: NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || '';
+// For development, you can get a free project ID at https://cloud.walletconnect.com/
+const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || 'development-placeholder';
 
-if (!projectId && typeof window !== 'undefined') {
+if (projectId === 'development-placeholder' && typeof window !== 'undefined') {
   console.warn(
-    'WalletConnect Project ID not set. Set NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID in .env.local'
+    '[Worldland] WalletConnect Project ID not set. WalletConnect may not work.\n' +
+    'Get a free project ID at https://cloud.walletconnect.com/ and set NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID in .env.local'
   );
 }
 
-// Custom wallet list: MetaMask first (recommended), others below
-// Per CONTEXT.md: "Wallet modal shows MetaMask as recommended first, other wallets below"
-const connectors = connectorsForWallets(
-  [
+// Create wagmi config using RainbowKit's getDefaultConfig
+// This handles SSR edge cases and provides sensible defaults
+export const wagmiConfig = getDefaultConfig({
+  appName: 'Worldland',
+  projectId,
+  chains: supportedChains,
+  transports: {
+    // BSC Testnet RPC
+    [bscTestnet.id]: http('https://data-seed-prebsc-1-s1.binance.org:8545/'),
+    // BSC Mainnet RPC
+    [bsc.id]: http('https://bsc-dataseed.binance.org/'),
+  },
+  // Custom wallet list: MetaMask first (recommended), others below
+  // Per CONTEXT.md: "Wallet modal shows MetaMask as recommended first, other wallets below"
+  wallets: [
     {
       groupName: '추천',  // Korean: "Recommended"
       wallets: [metaMaskWallet],
@@ -30,27 +43,7 @@ const connectors = connectorsForWallets(
       wallets: [walletConnectWallet, coinbaseWallet],
     },
   ],
-  {
-    appName: 'Worldland',
-    projectId,
-  }
-);
-
-// Create wagmi config
-export const wagmiConfig = createConfig({
-  chains: supportedChains,
-  connectors,
-  transports: {
-    // BSC Testnet RPC
-    [bscTestnet.id]: http('https://data-seed-prebsc-1-s1.binance.org:8545/'),
-    // BSC Mainnet RPC
-    [bsc.id]: http('https://bsc-dataseed.binance.org/'),
-    // Mainnet for ENS resolution
-    [mainnet.id]: http('https://eth.llamarpc.com'),
-  },
-  // Remember last wallet choice but require click to reconnect (pre-select only)
-  // Per CONTEXT.md: "Remember last wallet choice but require click to reconnect"
-  // This is default wagmi behavior - no reconnectOnMount
+  ssr: true, // Enable SSR-safe mode
 });
 
 // TypeScript: Register wagmi config for type inference

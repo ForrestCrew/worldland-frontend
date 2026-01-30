@@ -4,7 +4,7 @@ import {
   walletConnectWallet,
   coinbaseWallet,
 } from '@rainbow-me/rainbowkit/wallets';
-import { supportedChains, bscTestnet, bsc } from './chains';
+import { supportedChains, bscTestnet, bsc, mainnet } from './chains';
 import { http } from 'wagmi';
 
 // WalletConnect project ID - required for WalletConnect v2
@@ -30,6 +30,9 @@ export const wagmiConfig = getDefaultConfig({
     [bscTestnet.id]: http('https://data-seed-prebsc-1-s1.binance.org:8545/'),
     // BSC Mainnet RPC
     [bsc.id]: http('https://bsc-dataseed.binance.org/'),
+    // Ethereum Mainnet RPC (for ENS resolution only)
+    // Per RESEARCH.md: "ENS always resolves on mainnet regardless of user's current network"
+    [mainnet.id]: http('https://eth.llamarpc.com'),
   },
   // Custom wallet list: MetaMask first (recommended), others below
   // Per CONTEXT.md: "Wallet modal shows MetaMask as recommended first, other wallets below"

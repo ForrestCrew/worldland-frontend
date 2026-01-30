@@ -1,10 +1,42 @@
 'use client';
 
 import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth';
+import { useAccount } from 'wagmi';
+import { WalletHeader } from './wallet/WalletHeader';
+import { useAuth as useLegacyAuth } from '@/hooks/useAuth';
 
+/**
+ * AuthHeader component
+ *
+ * This component serves as a bridge between:
+ * 1. New Web3 wallet-based authentication (WalletHeader)
+ * 2. Legacy email-based authentication (preserved for existing users)
+ *
+ * Per CONTEXT.md:
+ * - Wallet connection is the primary authentication method
+ * - Wallet address and network visible in header at all times when connected
+ */
 export default function AuthHeader() {
-    const { user, isLoading, logout } = useAuth();
+    const { isConnected } = useAccount();
+    const { user, isLoading, logout } = useLegacyAuth();
+
+    // If wallet is connected, show WalletHeader (Web3 auth)
+    // This takes precedence over legacy email auth
+    if (isConnected) {
+        return (
+            <div className="flex items-center gap-4">
+                <Link
+                    href="/dashboard"
+                    className="text-sm text-gray-400 hover:text-white transition-colors"
+                >
+                    Dashboard
+                </Link>
+                <WalletHeader />
+            </div>
+        );
+    }
+
+    // Legacy email-based auth flow below (for backwards compatibility)
 
     // 로딩 중일 때는 빈 상태 표시 (깜빡임 방지)
     if (isLoading) {
@@ -15,7 +47,7 @@ export default function AuthHeader() {
         );
     }
 
-    // 로그인된 경우
+    // 로그인된 경우 (legacy email auth)
     if (user) {
         return (
             <div className="flex items-center gap-4">
@@ -36,21 +68,11 @@ export default function AuthHeader() {
         );
     }
 
-    // 로그인되지 않은 경우
+    // 로그인되지 않은 경우 - show wallet connect button
+    // Per CONTEXT.md: Wallet connection is primary auth method
     return (
         <div className="flex items-center gap-4">
-            <Link
-                href="/auth/login"
-                className="text-sm text-gray-400 hover:text-white font-medium transition-colors"
-            >
-                Login
-            </Link>
-            <Link
-                href="/auth/signup"
-                className="text-sm px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-full transition-all hover:scale-105"
-            >
-                Sign Up
-            </Link>
+            <WalletHeader />
         </div>
     );
 }

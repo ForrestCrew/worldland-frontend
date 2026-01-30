@@ -1,9 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { useAccount } from 'wagmi';
 import { WalletHeader } from './wallet/WalletHeader';
 import { useAuth as useLegacyAuth } from '@/hooks/useAuth';
+import { BalanceDisplay, DepositModal, WithdrawModal } from '@/components/balance';
 
 /**
  * AuthHeader component
@@ -20,19 +22,57 @@ export default function AuthHeader() {
     const { isConnected } = useAccount();
     const { user, isLoading, logout } = useLegacyAuth();
 
+    // Modal state for deposit/withdraw
+    const [isDepositOpen, setIsDepositOpen] = useState(false);
+    const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
+
     // If wallet is connected, show WalletHeader (Web3 auth)
     // This takes precedence over legacy email auth
     if (isConnected) {
         return (
-            <div className="flex items-center gap-4">
-                <Link
-                    href="/dashboard"
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
-                >
-                    Dashboard
-                </Link>
-                <WalletHeader />
-            </div>
+            <>
+                <div className="flex items-center gap-4">
+                    <Link
+                        href="/dashboard"
+                        className="text-sm text-gray-400 hover:text-white transition-colors"
+                    >
+                        Dashboard
+                    </Link>
+                    <Link
+                        href="/account"
+                        className="text-sm text-gray-400 hover:text-white transition-colors"
+                    >
+                        내 계정
+                    </Link>
+
+                    {/* Balance display - full on md+, compact on mobile */}
+                    <div className="hidden md:block">
+                        <BalanceDisplay
+                            showActions={true}
+                            onDepositClick={() => setIsDepositOpen(true)}
+                            onWithdrawClick={() => setIsWithdrawOpen(true)}
+                        />
+                    </div>
+                    <div className="block md:hidden">
+                        <BalanceDisplay
+                            showActions={false}
+                            className="text-right"
+                        />
+                    </div>
+
+                    <WalletHeader />
+                </div>
+
+                {/* Deposit/Withdraw modals */}
+                <DepositModal
+                    isOpen={isDepositOpen}
+                    onClose={() => setIsDepositOpen(false)}
+                />
+                <WithdrawModal
+                    isOpen={isWithdrawOpen}
+                    onClose={() => setIsWithdrawOpen(false)}
+                />
+            </>
         );
     }
 

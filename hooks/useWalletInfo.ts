@@ -58,9 +58,10 @@ export function useWalletInfo(): WalletInfo {
     chainId: mainnet.id,
   });
 
-  // Native token balance
+  // Native token balance on current chain
   const { data: balanceData } = useBalance({
     address,
+    chainId: chain?.id,
   });
 
   // Truncate address: 0x1234...5678

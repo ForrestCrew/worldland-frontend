@@ -26,8 +26,8 @@ export const wagmiConfig = getDefaultConfig({
   projectId,
   chains: supportedChains,
   transports: {
-    // Sepolia Testnet (development)
-    [sepolia.id]: http('https://rpc.sepolia.org'),
+    // Sepolia Testnet (development) - using reliable public RPC
+    [sepolia.id]: http('https://ethereum-sepolia-rpc.publicnode.com'),
     // Ethereum Mainnet (for ENS resolution)
     [mainnet.id]: http('https://eth.llamarpc.com'),
     // BSC Mainnet (production)

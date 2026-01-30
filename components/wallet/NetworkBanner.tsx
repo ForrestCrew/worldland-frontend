@@ -1,7 +1,7 @@
 'use client';
 
 import { useNetworkGuard } from '@/hooks/useNetworkGuard';
-import { sepolia, mainnet } from '@/config/chains';
+import { sepolia, mainnet, bsc } from '@/config/chains';
 
 /**
  * Persistent warning banner for wrong network
@@ -26,8 +26,10 @@ export function NetworkBanner() {
   }
 
   // Get expected network name for display
+  // Dev: Sepolia, Prod: BSC
   const expectedNetworkName =
-    expectedChainId === mainnet.id ? 'Ethereum Mainnet' : 'Sepolia Testnet';
+    expectedChainId === bsc.id ? 'BNB Chain' :
+    expectedChainId === sepolia.id ? 'Sepolia Testnet' : 'Ethereum Mainnet';
 
   // Get current network name (if known)
   const currentNetworkName = currentChainId

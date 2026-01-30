@@ -4,7 +4,7 @@ import {
   walletConnectWallet,
   coinbaseWallet,
 } from '@rainbow-me/rainbowkit/wallets';
-import { supportedChains, sepolia, mainnet } from './chains';
+import { supportedChains, sepolia, mainnet, bsc, bscTestnet } from './chains';
 import { http } from 'wagmi';
 
 // WalletConnect project ID - required for WalletConnect v2
@@ -26,10 +26,14 @@ export const wagmiConfig = getDefaultConfig({
   projectId,
   chains: supportedChains,
   transports: {
-    // Sepolia Testnet RPC (development)
+    // Sepolia Testnet (development)
     [sepolia.id]: http('https://rpc.sepolia.org'),
-    // Ethereum Mainnet RPC (for ENS resolution and production)
+    // Ethereum Mainnet (for ENS resolution)
     [mainnet.id]: http('https://eth.llamarpc.com'),
+    // BSC Mainnet (production)
+    [bsc.id]: http('https://bsc-dataseed.binance.org/'),
+    // BSC Testnet (for future use)
+    [bscTestnet.id]: http('https://data-seed-prebsc-1-s1.binance.org:8545/'),
   },
   // Custom wallet list: MetaMask first (recommended), others below
   // Per CONTEXT.md: "Wallet modal shows MetaMask as recommended first, other wallets below"

@@ -27,3 +27,5 @@ export * from './useRegisterNode';
 export * from './useAvailableGPUs';
 export * from './useRentalSessions';
 export * from './useRentalStatus';
+export * from './useStartRental';
+export * from './useStopRental';

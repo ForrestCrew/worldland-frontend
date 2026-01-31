@@ -3,10 +3,12 @@
 ## Current Position
 
 Phase: 8 of 9 (User Rental Flow + Tech Debt)
-Plan: 03 and 04 complete
+Plan: 05 complete
 Status: In progress
 
-Last activity: 2026-02-01 - Completed 08-03-PLAN.md
+Last activity: 2026-02-01 - Completed 08-05-PLAN.md
+
+Progress: [========================================--------] 80%
 
 ## Accumulated Context
 
@@ -22,6 +24,7 @@ Last activity: 2026-02-01 - Completed 08-03-PLAN.md
 | v1.1 | 6 retries * 5s delay for Hub API during blockchain lag | 08-03 |
 | v1.1 | 60 second auto-hide timer for SSH credentials | 08-04 |
 | v1.1 | StatusBadge as sub-component pattern | 08-04 |
+| v1.1 | Custom bigIntSortingFn for TanStack Table price sorting | 08-05 |
 
 ### Key Artifacts
 
@@ -30,6 +33,10 @@ Last activity: 2026-02-01 - Completed 08-03-PLAN.md
 | hooks/useStartRental.ts | 08-03 | 2-phase rental start (blockchain + Hub API) |
 | hooks/useStopRental.ts | 08-03 | Rental stop with cache invalidation |
 | lib/rental-utils.ts | 08-03 | Retry utility and rental types |
+| components/rent/GPUFilterBar.tsx | 08-05 | Search and filter controls for marketplace |
+| components/rent/GPUList.tsx | 08-05 | Sortable GPU table with TanStack Table |
+| components/rent/RentalStartModal.tsx | 08-05 | Rental start flow with gas preview |
+| app/rent/page.tsx | 08-05 | GPU marketplace page |
 
 ### Blockers/Concerns
 
@@ -37,6 +44,6 @@ None at this time.
 
 ## Session Continuity
 
-Last session: 2026-02-01T01:20:00Z
-Stopped at: Completed 08-03-PLAN.md
+Last session: 2026-02-01T16:22:50Z
+Stopped at: Completed 08-05-PLAN.md
 Resume file: None

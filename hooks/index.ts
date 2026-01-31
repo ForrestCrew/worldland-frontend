@@ -15,3 +15,10 @@ export * from './useNetworkGuard';
 export * from './useWalletAuth';
 export * from './useWalletInfo';
 export * from './useAuth';
+
+// Provider dashboard hooks
+export * from './useProviderNodes';
+export * from './useProviderRentals';
+export * from './useProviderEarnings';
+export * from './useUpdateNodePrice';
+export * from './useRegisterNode';

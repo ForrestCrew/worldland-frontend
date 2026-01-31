@@ -51,6 +51,7 @@ export function PricingControl({
 }: PricingControlProps) {
   const [pricePerHour, setPricePerHour] = useState('');
   const { updatePrice, isPending, error, reset } = useUpdateNodePrice();
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Initialize input with current price (converted to per-hour)
   useEffect(() => {
@@ -75,26 +76,29 @@ export function PricingControl({
       const perHourWei = parseEther(pricePerHour);
       const perSecWei = perHourWei / BigInt(3600);
 
-      updatePrice(
-        { nodeId, price_per_sec: perSecWei.toString() },
-        {
-          onSuccess: () => {
-            // Auto-close modal on success
-            setTimeout(() => {
-              handleClose();
-            }, 1000);
-          },
-        }
-      );
+      updatePrice({ nodeId, price_per_sec: perSecWei.toString() });
+      setIsSuccess(true);
     } catch (err) {
       console.error('Price update error:', err);
+      setIsSuccess(false);
     }
   };
+
+  // Auto-close on success after delay
+  useEffect(() => {
+    if (isSuccess && !isPending && !error) {
+      const timer = setTimeout(() => {
+        handleClose();
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [isSuccess, isPending, error]);
 
   // Handle modal close
   const handleClose = () => {
     reset();
     setPricePerHour('');
+    setIsSuccess(false);
     onClose();
   };
 

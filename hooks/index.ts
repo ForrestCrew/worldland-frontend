@@ -22,3 +22,8 @@ export * from './useProviderRentals';
 export * from './useProviderEarnings';
 export * from './useUpdateNodePrice';
 export * from './useRegisterNode';
+
+// User rental flow hooks
+export * from './useAvailableGPUs';
+export * from './useRentalSessions';
+export * from './useRentalStatus';

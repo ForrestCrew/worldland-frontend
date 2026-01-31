@@ -29,3 +29,7 @@ export * from './useRentalSessions';
 export * from './useRentalStatus';
 export * from './useStartRental';
 export * from './useStopRental';
+
+// Indexed history hooks (from Hub indexer API)
+export * from './useIndexedTransactionHistory';
+export * from './useIndexedRentalHistory';

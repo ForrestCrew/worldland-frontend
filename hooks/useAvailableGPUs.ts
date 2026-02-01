@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { hubApi } from '@/lib/api';
 
 /**
  * Filter parameters for GPU marketplace search
@@ -50,12 +51,11 @@ export interface UseAvailableGPUsReturn {
   refetch: () => void;
 }
 
-const HUB_API_URL = process.env.NEXT_PUBLIC_HUB_API_URL || 'http://localhost:8080';
 
 /**
  * Fetch available GPUs from Hub API with filter support
  *
- * Queries GET /api/v1/rentals/providers with optional filter parameters.
+ * Queries POST /api/v1/rentals/providers with filter parameters in request body.
  * Returns only available (not currently rented) GPUs for the marketplace.
  *
  * Features:
@@ -92,52 +92,40 @@ export function useAvailableGPUs(filters: GPUFilters = {}): UseAvailableGPUsRetu
   } = useQuery({
     queryKey: ['gpus', 'available', filters],
     queryFn: async (): Promise<AvailableGPU[]> => {
-      const params = new URLSearchParams();
+      // Build request body for POST endpoint
+      const requestBody: {
+        gpuType?: string;
+        minMemoryGB?: number;
+        maxPricePerSecond?: string;
+        region?: string;
+        limit: number;
+      } = {
+        limit: 50,
+      };
 
-      // Apply filter parameters
       if (filters.gpuType) {
-        params.set('gpuType', filters.gpuType);
+        requestBody.gpuType = filters.gpuType;
       }
 
       if (filters.maxPricePerHour) {
         // Convert per-hour to per-second for API (Pitfall 3 from RESEARCH.md)
         // User thinks in per-hour, API expects per-second
         const perSecond = BigInt(filters.maxPricePerHour) / BigInt(3600);
-        params.set('maxPricePerSecond', perSecond.toString());
+        requestBody.maxPricePerSecond = perSecond.toString();
       }
 
       if (filters.region) {
-        params.set('region', filters.region);
+        requestBody.region = filters.region;
       }
 
       if (filters.minVram) {
-        params.set('minVram', filters.minVram.toString());
+        requestBody.minMemoryGB = filters.minVram;
       }
 
-      // Only fetch available nodes for marketplace
-      params.set('status', 'available');
-      params.set('limit', '50');
-
-      const response = await fetch(
-        `${HUB_API_URL}/api/v1/rentals/providers?${params.toString()}`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.error?.message || errorData.message || 'Failed to fetch available GPUs'
-        );
-      }
-
-      const data = await response.json();
+      // Use hubApi client which includes auth token automatically
+      const data = await hubApi.findProviders(requestBody);
       // API returns providers array with node info
-      return (data.providers ?? data.data ?? []) as AvailableGPU[];
+      return (Array.isArray(data) ? data : (data as { providers?: AvailableGPU[] }).providers ?? []) as AvailableGPU[];
     },
     staleTime: 10000, // 10 seconds
     refetchInterval: 30000, // 30 seconds polling per Phase 7 pattern

@@ -4,45 +4,45 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useAccount } from 'wagmi';
 import { WalletHeader } from './wallet/WalletHeader';
-import { useAuth as useLegacyAuth } from '@/hooks/useAuth';
 import { BalanceDisplay, DepositModal, WithdrawModal } from '@/components/balance';
 
 /**
  * AuthHeader component
  *
- * This component serves as a bridge between:
- * 1. New Web3 wallet-based authentication (WalletHeader)
- * 2. Legacy email-based authentication (preserved for existing users)
+ * Shows wallet connection status and balance controls.
+ * Wallet connection is the primary (and only) authentication method.
  *
- * Per CONTEXT.md:
- * - Wallet connection is the primary authentication method
- * - Wallet address and network visible in header at all times when connected
+ * When connected:
+ * - Links to Provider dashboard and Rent marketplace
+ * - Balance display with deposit/withdraw buttons
+ * - Wallet info (address, network)
+ *
+ * When not connected:
+ * - Wallet connect button only
  */
 export default function AuthHeader() {
     const { isConnected } = useAccount();
-    const { user, isLoading, logout } = useLegacyAuth();
 
     // Modal state for deposit/withdraw
     const [isDepositOpen, setIsDepositOpen] = useState(false);
     const [isWithdrawOpen, setIsWithdrawOpen] = useState(false);
 
-    // If wallet is connected, show WalletHeader (Web3 auth)
-    // This takes precedence over legacy email auth
+    // If wallet is connected, show full header with navigation
     if (isConnected) {
         return (
             <>
                 <div className="flex items-center gap-4">
                     <Link
-                        href="/dashboard"
+                        href="/provider"
                         className="text-sm text-gray-400 hover:text-white transition-colors"
                     >
-                        Dashboard
+                        Provider
                     </Link>
                     <Link
-                        href="/account"
+                        href="/rent"
                         className="text-sm text-gray-400 hover:text-white transition-colors"
                     >
-                        내 계정
+                        GPU 임대
                     </Link>
 
                     {/* Balance display - full on md+, compact on mobile */}
@@ -76,40 +76,7 @@ export default function AuthHeader() {
         );
     }
 
-    // Legacy email-based auth flow below (for backwards compatibility)
-
-    // 로딩 중일 때는 빈 상태 표시 (깜빡임 방지)
-    if (isLoading) {
-        return (
-            <div className="flex items-center gap-4">
-                <div className="w-16 h-4 bg-[#222] rounded animate-pulse" />
-            </div>
-        );
-    }
-
-    // 로그인된 경우 (legacy email auth)
-    if (user) {
-        return (
-            <div className="flex items-center gap-4">
-                <Link
-                    href="/dashboard"
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
-                >
-                    Dashboard
-                </Link>
-                <span className="text-sm text-gray-500">{user.email || user.name}</span>
-                <button
-                    onClick={logout}
-                    className="text-sm text-gray-400 hover:text-white transition-colors"
-                >
-                    Logout
-                </button>
-            </div>
-        );
-    }
-
-    // 로그인되지 않은 경우 - show wallet connect button
-    // Per CONTEXT.md: Wallet connection is primary auth method
+    // Not connected - show wallet connect button only
     return (
         <div className="flex items-center gap-4">
             <WalletHeader />

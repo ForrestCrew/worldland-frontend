@@ -14,7 +14,6 @@ export * from './useWithdraw';
 export * from './useNetworkGuard';
 export * from './useWalletAuth';
 export * from './useWalletInfo';
-export * from './useAuth';
 
 // Provider dashboard hooks
 export * from './useProviderNodes';

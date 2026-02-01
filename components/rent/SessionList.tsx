@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useRentalSessions, type RentalSession } from '@/hooks/useRentalSessions';
 import { useStopRental } from '@/hooks/useStopRental';
 import { RentalStatusCard, type RentalSession as CardSession } from './RentalStatusCard';
 import { SessionHistoryCard, type CompletedSession } from './SessionHistoryCard';
 import { RentalEmptyState } from './RentalEmptyState';
+import { toast } from 'sonner';
 
 /**
  * Convert hook session to RentalStatusCard format
@@ -101,19 +103,52 @@ export function SessionList({ className = '' }: { className?: string }) {
     refetch,
   } = useRentalSessions();
 
-  const { stopRental, status: stopStatus } = useStopRental();
+  const { stopRental, status: stopStatus, errorMessage, reset } = useStopRental();
 
-  // Handle stop rental action
+  // FIX (Phase 12): Show toast notifications for stop success/failure
+  useEffect(() => {
+    if (stopStatus === 'success') {
+      toast.success('임대 종료 완료', {
+        description: '임대가 성공적으로 종료되었습니다.',
+      });
+      // Reset after a short delay to allow user to see inline status too
+      setTimeout(() => reset(), 2000);
+    } else if (stopStatus === 'fail' && errorMessage) {
+      toast.error('임대 종료 실패', {
+        description: errorMessage,
+      });
+      reset();
+    }
+  }, [stopStatus, errorMessage, reset]);
+
+  /**
+   * Handle stop rental action
+   *
+   * FIX (Phase 12): Use session.rentalId from Hub API instead of parsing from session ID.
+   * Hub API returns rentalId (blockchain rental ID) for sessions that have been started.
+   * If rentalId is not available, show error toast since stop is not possible.
+   */
   const handleStopRental = async (sessionId: string) => {
-    // In real implementation, we'd need the blockchain rental ID
-    // For now, parse it from the session ID or call Hub API to get it
-    // Assuming session ID format includes the rental ID
+    // Find the session to get the blockchain rental ID
+    const session = active.find((s) => s.id === sessionId);
+    if (!session) {
+      toast.error('세션을 찾을 수 없습니다');
+      return;
+    }
+
+    // Check if session has a blockchain rental ID
+    if (session.rentalId === undefined || session.rentalId === null) {
+      toast.error('임대 종료 불가', {
+        description: '이 세션은 아직 블록체인에서 시작되지 않았습니다. 잠시 후 다시 시도해 주세요.',
+      });
+      return;
+    }
+
     try {
-      // Parse rental ID from session (format: "rental-{rentalId}" or just use session ID)
-      const rentalId = BigInt(sessionId.replace(/\D/g, '') || '0');
-      await stopRental({ rentalId });
+      await stopRental({ rentalId: BigInt(session.rentalId) });
     } catch (err) {
-      console.error('Failed to stop rental:', err);
+      // Errors are handled by useStopRental hook and shown via toast effect above
+      console.error('Failed to initiate stop rental:', err);
     }
   };
 

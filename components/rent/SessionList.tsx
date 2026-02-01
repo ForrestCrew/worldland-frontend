@@ -7,6 +7,8 @@ import { RentalStatusCard, type RentalSession as CardSession } from './RentalSta
 import { SessionHistoryCard, type CompletedSession } from './SessionHistoryCard';
 import { RentalEmptyState } from './RentalEmptyState';
 import { toast } from 'sonner';
+import { useErrorModal } from '@/hooks/useErrorModal';
+import { ErrorModal } from '@/components/ui/error-modal';
 
 /**
  * Convert hook session to RentalStatusCard format
@@ -104,6 +106,36 @@ export function SessionList({ className = '' }: { className?: string }) {
   } = useRentalSessions();
 
   const { stopRental, status: stopStatus, errorMessage, reset } = useStopRental();
+  const { errorModal, showError, hideError } = useErrorModal();
+
+  // FIX (Phase 12-02): Classify errors by severity for appropriate UI feedback
+  useEffect(() => {
+    if (error) {
+      const errorMessage = error.message;
+
+      // 401 = Auth expired -> Toast with re-login guidance
+      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized') || errorMessage.includes('인증')) {
+        toast.error('인증이 만료되었습니다', {
+          description: '다시 로그인해주세요',
+        });
+      }
+      // Network/Server errors -> Modal (blocking) with retry option
+      else if (
+        errorMessage.includes('Failed to fetch') ||
+        errorMessage.includes('500') ||
+        errorMessage.includes('Network') ||
+        errorMessage.includes('서버')
+      ) {
+        showError(error, '서버 연결 실패', () => refetch());
+      }
+      // Other errors -> Toast (non-blocking)
+      else {
+        toast.error('데이터를 불러올 수 없습니다', {
+          description: errorMessage,
+        });
+      }
+    }
+  }, [error, showError, refetch]);
 
   // FIX (Phase 12): Show toast notifications for stop success/failure
   useEffect(() => {
@@ -334,6 +366,16 @@ export function SessionList({ className = '' }: { className?: string }) {
           </div>
         </div>
       )}
+
+      {/* Error modal for critical network/server errors */}
+      <ErrorModal
+        isOpen={errorModal.isOpen}
+        onClose={hideError}
+        onRetry={errorModal.onRetry}
+        title={errorModal.title}
+        message={errorModal.message}
+        technicalDetails={errorModal.technicalDetails}
+      />
     </div>
   );
 }

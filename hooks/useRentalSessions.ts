@@ -10,9 +10,13 @@ export type RentalSessionState = 'PENDING' | 'RUNNING' | 'STOPPED' | 'CANCELLED'
 
 /**
  * Rental session data from Hub API
+ *
+ * ROOT CAUSE FIX (Phase 12): Added rentalId field for blockchain rental ID.
+ * Hub API returns rentalId when session has been started on blockchain.
+ * This is needed for stopRental contract call which requires the blockchain rental ID.
  */
 export interface RentalSession {
-  /** Session unique identifier */
+  /** Session unique identifier (Hub database ID) */
   id: string;
   /** Node being rented */
   nodeId: string;
@@ -24,6 +28,8 @@ export interface RentalSession {
   pricePerSecond: string;
   /** Current session state */
   state: RentalSessionState;
+  /** Blockchain rental ID (from contract RentalStarted event) - required for stopRental */
+  rentalId?: number;
   /** When rental started (ISO timestamp) */
   startTime?: string;
   /** When rental stopped (ISO timestamp) */
@@ -109,19 +115,44 @@ export function useRentalSessions(): UseRentalSessionsReturn {
         return [];
       }
 
+      // ROOT CAUSE FIX (Phase 12): Get SIWE token and throw early if missing.
+      // Previously, missing token resulted in 401 error from API which was not clear.
+      // Now we throw with clear error message before making API call.
+      const storedAuth = localStorage.getItem('worldland_auth');
+      if (!storedAuth) {
+        throw new Error('인증이 필요합니다. 지갑을 다시 연결해 주세요. (AUTH_MISSING)');
+      }
+
+      let token: string | null = null;
+      try {
+        const parsed = JSON.parse(storedAuth);
+        token = parsed.token || null;
+      } catch {
+        throw new Error('인증 정보가 손상되었습니다. 지갑을 다시 연결해 주세요. (AUTH_INVALID)');
+      }
+
+      if (!token) {
+        throw new Error('인증 토큰이 없습니다. 지갑을 다시 연결해 주세요. (TOKEN_MISSING)');
+      }
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      };
+
       const response = await fetch(`${HUB_API_URL}/api/v1/rentals`, {
         method: 'GET',
-        credentials: 'include', // SIWE session auth
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        credentials: 'include',
+        headers,
       });
 
+      // ROOT CAUSE FIX (Phase 12): Include HTTP status code in error message.
+      // Previously only showed generic message, making debugging difficult.
+      // Now error includes status code for proper error handling in UI.
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.error?.message || errorData.message || 'Failed to fetch rental sessions'
-        );
+        const message = errorData.error?.message || errorData.error || errorData.message || 'Unknown error';
+        throw new Error(`API 오류 (${response.status}): ${message}`);
       }
 
       const data = await response.json();

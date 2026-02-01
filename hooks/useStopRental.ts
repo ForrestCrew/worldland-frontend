@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import {
   useAccount,
   useWriteContract,
@@ -74,6 +74,9 @@ export function useStopRental(): UseStopRentalReturn {
   // Track settlement amount (would be extracted from tx logs in real implementation)
   const [settlementAmount, setSettlementAmount] = useState<bigint | null>(null);
 
+  // Track if cache has been invalidated for current transaction
+  const cacheInvalidatedRef = useRef(false);
+
   // Write contract hook
   const {
     data: hash,
@@ -90,11 +93,31 @@ export function useStopRental(): UseStopRentalReturn {
     error: confirmError,
   } = useWaitForTransactionReceipt({
     hash,
-    // On confirmation, invalidate caches immediately
     query: {
       enabled: !!hash,
     },
   });
+
+  // ROOT CAUSE FIX (Phase 12): Invalidate cache ONLY after blockchain confirmation.
+  // Previously, cache was invalidated immediately after tx submission (in stopRental callback).
+  // This caused UI to refetch before Hub had processed the RentalStopped event,
+  // resulting in stale data. Now we wait for isConfirmed=true before invalidating.
+  useEffect(() => {
+    if (isConfirmed && address && !cacheInvalidatedRef.current) {
+      cacheInvalidatedRef.current = true;
+      // Invalidate caches after blockchain confirmation
+      queryClient.invalidateQueries({ queryKey: ['rentals', 'user', address] });
+      queryClient.invalidateQueries({ queryKey: ['balance', address] });
+      queryClient.invalidateQueries({ queryKey: ['rental', 'status'] });
+    }
+  }, [isConfirmed, address, queryClient]);
+
+  // Reset cache invalidation flag when hash changes (new transaction)
+  useEffect(() => {
+    if (!hash) {
+      cacheInvalidatedRef.current = false;
+    }
+  }, [hash]);
 
   // Derive 6-state status
   const getStatus = (): TransactionStatus => {
@@ -110,6 +133,10 @@ export function useStopRental(): UseStopRentalReturn {
 
   /**
    * Stop rental
+   *
+   * ROOT CAUSE FIX (Phase 12): Removed cache invalidation from this callback.
+   * Cache is now invalidated in useEffect watching isConfirmed.
+   * Also removed try-catch - errors are captured by wagmi hook state.
    */
   const stopRental = useCallback(
     async (params: StopRentalParams) => {
@@ -117,32 +144,23 @@ export function useStopRental(): UseStopRentalReturn {
         throw new Error('지갑이 연결되지 않았습니다');
       }
 
-      try {
-        setSettlementAmount(null);
+      setSettlementAmount(null);
+      cacheInvalidatedRef.current = false;
 
-        // Call contract stopRental function
-        await writeContractAsync({
-          address: RENTAL_CONTRACT_ADDRESS,
-          abi: WorldlandRentalABI,
-          functionName: 'stopRental',
-          args: [params.rentalId],
-        });
+      // Call contract stopRental function
+      // Errors are captured in writeError state, no try-catch needed
+      await writeContractAsync({
+        address: RENTAL_CONTRACT_ADDRESS,
+        abi: WorldlandRentalABI,
+        functionName: 'stopRental',
+        args: [params.rentalId],
+      });
 
-        // Settlement amount would be extracted from transaction logs
-        // For now, this is handled by the blockchain and Hub API will reflect updated state
-
-        // Invalidate caches immediately after transaction submission
-        // UI will refresh when transaction confirms
-        queryClient.invalidateQueries({ queryKey: ['rentals', 'user', address] });
-        queryClient.invalidateQueries({ queryKey: ['balance', address] });
-        queryClient.invalidateQueries({ queryKey: ['rental', 'status'] });
-
-      } catch (error) {
-        // Error is captured in writeError/confirmError
-        console.error('Stop rental failed:', error);
-      }
+      // Settlement amount would be extracted from transaction logs
+      // For now, this is handled by the blockchain and Hub API will reflect updated state
+      // Cache invalidation moved to useEffect watching isConfirmed
     },
-    [address, writeContractAsync, queryClient]
+    [address, writeContractAsync]
   );
 
   /**

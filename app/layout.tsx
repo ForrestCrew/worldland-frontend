@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/hooks/useAuth";
 import { Web3Provider } from "./providers/Web3Provider";
 import { NetworkBanner } from "@/components/wallet";
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,6 +35,7 @@ export default function RootLayout({
           <AuthProvider>
             <NetworkBanner />
             {children}
+            <Toaster />
           </AuthProvider>
         </Web3Provider>
       </body>

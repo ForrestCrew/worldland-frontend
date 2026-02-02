@@ -35,3 +35,7 @@ export * from './useIndexedRentalHistory';
 
 // UI utility hooks
 export * from './useCountdown';
+
+// ADR-001 rental confirmation hooks
+export * from './useConfirmRental';
+export * from './useCancelSession';

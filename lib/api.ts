@@ -131,3 +131,40 @@ export const hubApi = new HubApiClient(HUB_API_URL);
 
 // Export for direct use
 export { HubApiClient };
+
+// ============================================================================
+// Base Image Selection Types (Phase 24)
+// ============================================================================
+
+/**
+ * Base image category for GPU containers
+ * Matches backend domain.ImageCategory constants
+ */
+export type ImageCategory = 'pytorch' | 'tensorflow' | 'cuda';
+
+/**
+ * Base image preset for GPU rentals
+ * Users can select from curated presets or provide custom Docker image URL
+ */
+export interface BaseImage {
+  /** Unique identifier (UUID) */
+  id: string;
+  /** Display name (e.g., "PyTorch 2.1 + CUDA 12.1") */
+  name: string;
+  /** Docker image reference (e.g., "pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime") */
+  dockerImage: string;
+  /** Category for grouping in UI */
+  category: ImageCategory;
+  /** Whether GPU is required to run this image */
+  gpuRequired: boolean;
+  /** Optional description for UI display */
+  description?: string;
+}
+
+/**
+ * Fetch available base images from Hub API
+ * @returns Array of preset base images
+ */
+export async function getImages(): Promise<BaseImage[]> {
+  return hubApi.request<BaseImage[]>('/api/v1/images');
+}

@@ -30,6 +30,10 @@ export interface RentalSession {
   state: RentalSessionState;
   /** Blockchain rental ID (from contract RentalStarted event) - required for stopRental */
   rentalId?: number;
+  /** Transaction hash submitted for confirmation (Phase 14) */
+  txHash?: string;
+  /** When session was created (ISO timestamp) - used for TTL countdown */
+  createdAt: string;
   /** When rental started (ISO timestamp) */
   startTime?: string;
   /** When rental stopped (ISO timestamp) */

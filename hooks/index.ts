@@ -42,3 +42,4 @@ export * from './useCancelSession';
 
 // Session extension hooks (Phase 17)
 export * from './useExtendSession';
+export * from './useSessionTimer';

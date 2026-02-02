@@ -27,3 +27,6 @@ export * from './SessionList';
 export * from './GPUFilterBar';
 export * from './GPUList';
 export * from './RentalStartModal';
+
+// Image selection (Phase 24)
+export * from './ImageSelector';

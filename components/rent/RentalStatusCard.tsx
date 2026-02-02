@@ -6,9 +6,12 @@ import { ko } from 'date-fns/locale';
 import { formatEther } from 'viem';
 import { SSHCredentials, type SSHCredentialsData } from './SSHCredentials';
 import { SessionExtensionModal } from './SessionExtensionModal';
+import { SessionCountdownTimer } from './SessionCountdownTimer';
+import { SessionLowBalanceWarning } from './SessionLowBalanceWarning';
 import { useCountdown, type UrgencyLevel } from '@/hooks/useCountdown';
 import { useConfirmRental } from '@/hooks/useConfirmRental';
 import { useCancelSession } from '@/hooks/useCancelSession';
+import { toast } from 'sonner';
 
 /**
  * Rental status type
@@ -314,7 +317,19 @@ export function RentalStatusCard({
           <h3 className="text-xl font-bold text-white">{rental.gpu_type}</h3>
           <p className="text-sm text-gray-400">{rental.vram_gb} GB VRAM</p>
         </div>
-        <StatusBadge status={rental.status} />
+        <div className="flex items-center gap-3">
+          {rental.status === 'RUNNING' && rental.extended_until && (
+            <SessionCountdownTimer
+              extendedUntil={rental.extended_until}
+              onExpiringSoon={() => {
+                toast.warning('세션이 15분 후 만료됩니다', {
+                  description: '연장하거나 작업을 저장하세요.',
+                });
+              }}
+            />
+          )}
+          <StatusBadge status={rental.status} />
+        </div>
       </div>
 
       {/* Rental details */}
@@ -332,6 +347,19 @@ export function RentalStatusCard({
       {/* Status-specific content */}
       {rental.status === 'PENDING' && (
         <PendingContent rental={rental} />
+      )}
+
+      {rental.status === 'RUNNING' && rental.balance && (
+        <SessionLowBalanceWarning
+          balance={rental.balance}
+          pricePerSecond={rental.price_per_sec}
+          onExtend={() => setIsExtensionModalOpen(true)}
+          onDeposit={() => {
+            // Navigate to deposit page
+            window.location.href = '/balance';
+          }}
+          className="mb-6"
+        />
       )}
 
       {rental.status === 'RUNNING' && rental.ssh_credentials && (

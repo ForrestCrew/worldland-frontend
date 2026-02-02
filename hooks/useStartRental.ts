@@ -33,6 +33,8 @@ export interface StartRentalParams {
   provider: `0x${string}`;
   /** Price per second in wei */
   pricePerSecond: bigint;
+  /** Container image (preset ID or custom Docker URL) - optional, uses default if not provided */
+  image?: string;
 }
 
 /**
@@ -131,6 +133,7 @@ export function useStartRental(): UseStartRentalReturn {
     rentalId: bigint;
     nodeId: string;
     txHash: string;
+    image?: string;
   }): Promise<SSHCredentials> => {
     // Get SIWE token from localStorage
     const storedAuth = localStorage.getItem('worldland_auth');
@@ -153,6 +156,7 @@ export function useStartRental(): UseStartRentalReturn {
         body: JSON.stringify({
           rentalId: params.rentalId.toString(),
           transactionHash: params.txHash,
+          ...(params.image && { image: params.image }),
         }),
       }
     );
@@ -221,6 +225,7 @@ export function useStartRental(): UseStartRentalReturn {
               rentalId: newRentalId,
               nodeId: params.nodeId,
               txHash,
+              image: params.image,
             }),
           {
             maxRetries: 6,

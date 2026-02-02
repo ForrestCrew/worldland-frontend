@@ -6,6 +6,7 @@ import { useStartRental } from '@/hooks/useStartRental';
 import { useGasEstimate } from '@/hooks/useGasEstimate';
 import { GasEstimateDisplay } from '@/components/balance/GasEstimateDisplay';
 import { TransactionStatus } from '@/components/balance/TransactionStatus';
+import { ImageSelector } from './ImageSelector';
 import {
   WorldlandRentalABI,
   RENTAL_CONTRACT_ADDRESS,
@@ -146,6 +147,7 @@ export function RentalStartModal({
   const [sshPublicKey, setSSHPublicKey] = useState('');
   const [sshError, setSSHError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   // Rental hook
   const {
@@ -209,8 +211,9 @@ export function RentalStartModal({
       nodeId: gpu.nodeId,
       provider: gpu.providerId as `0x${string}`,
       pricePerSecond: BigInt(gpu.pricePerSecond),
+      image: selectedImage || undefined, // Send image if selected (preset ID or custom URL)
     });
-  }, [gpu, sshPublicKey, startRental]);
+  }, [gpu, sshPublicKey, selectedImage, startRental]);
 
   /**
    * Handle modal close
@@ -225,6 +228,7 @@ export function RentalStartModal({
     setSSHPublicKey('');
     setSSHError(null);
     setCopiedField(null);
+    setSelectedImage(null);
     onClose();
   }, [stage, reset, onClose]);
 
@@ -346,6 +350,15 @@ export function RentalStartModal({
                 <StageIndicator stage={stage} />
                 <p className="text-sm text-gray-400 mt-3">{stageMessage}</p>
               </div>
+            )}
+
+            {/* Image selection (hidden after rental starts) */}
+            {(stage === 'idle' || stage === 'error') && (
+              <ImageSelector
+                value={selectedImage}
+                onChange={setSelectedImage}
+                disabled={stage !== 'idle' && stage !== 'error'}
+              />
             )}
 
             {/* SSH key input (hidden after rental starts) */}

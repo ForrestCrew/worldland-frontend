@@ -5,6 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { formatEther } from 'viem';
 import { SSHCredentials, type SSHCredentialsData } from './SSHCredentials';
+import { SessionExtensionModal } from './SessionExtensionModal';
 import { useCountdown, type UrgencyLevel } from '@/hooks/useCountdown';
 import { useConfirmRental } from '@/hooks/useConfirmRental';
 import { useCancelSession } from '@/hooks/useCancelSession';
@@ -38,6 +39,12 @@ export interface RentalSession {
   tx_hash?: string;
   /** SSH credentials (only when RUNNING) */
   ssh_credentials?: SSHCredentialsData;
+  /** Extended expiration time (ISO timestamp, nullable) - Phase 16 */
+  extended_until?: string;
+  /** Number of times this session has been extended - Phase 16 */
+  extension_count?: number;
+  /** Current deposit balance in USDT - Phase 16 */
+  balance?: string;
 }
 
 /**
@@ -274,6 +281,7 @@ export function RentalStatusCard({
   className = '',
 }: RentalStatusCardProps) {
   const [isStopLoading, setIsStopLoading] = useState(false);
+  const [isExtensionModalOpen, setIsExtensionModalOpen] = useState(false);
 
   // Format rental started time with Korean locale
   const startedAgo = formatDistanceToNow(new Date(rental.started_at), {
@@ -364,7 +372,13 @@ export function RentalStatusCard({
 
       {/* Action buttons */}
       {rental.status === 'RUNNING' && onStop && (
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => setIsExtensionModalOpen(true)}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white transition-colors"
+          >
+            세션 연장
+          </button>
           <button
             onClick={handleStop}
             disabled={isStopLoading}
@@ -412,6 +426,13 @@ export function RentalStatusCard({
           Node: {rental.node_id.slice(0, 8)}...{rental.node_id.slice(-8)}
         </div>
       </div>
+
+      {/* Session extension modal */}
+      <SessionExtensionModal
+        isOpen={isExtensionModalOpen}
+        onClose={() => setIsExtensionModalOpen(false)}
+        session={rental}
+      />
     </div>
   );
 }

@@ -3,7 +3,18 @@
 import { useState, useEffect, Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { useExtendSession } from '@/hooks/useExtendSession';
-import type { RentalSession } from '@/hooks/useRentalSessions';
+
+/**
+ * Session data for extension modal (compatible with RentalStatusCard interface)
+ */
+interface ExtensionSession {
+  id: string;
+  price_per_sec?: string;
+  pricePerSecond?: string;
+  extended_until?: string;
+  extendedUntil?: string;
+  balance?: string;
+}
 
 /**
  * Session extension modal props
@@ -14,7 +25,7 @@ export interface SessionExtensionModalProps {
   /** Callback when modal closes */
   onClose: () => void;
   /** Session to extend (null when closed) */
-  session: RentalSession | null;
+  session: ExtensionSession | null;
   /** Optional callback after successful extension */
   onSuccess?: () => void;
 }
@@ -101,20 +112,19 @@ export function SessionExtensionModal({
   // Don't render if session is null
   if (!session) return null;
 
+  // Support both naming conventions (snake_case and camelCase)
+  const pricePerSecond = session.price_per_sec || session.pricePerSecond || '0';
+  const extendedUntil = session.extended_until || session.extendedUntil;
+
   // Calculate costs
-  const extensionCost = calculateExtensionCost(
-    session.pricePerSecond,
-    selectedMinutes
-  );
+  const extensionCost = calculateExtensionCost(pricePerSecond, selectedMinutes);
 
   const currentBalance = parseFloat(session.balance || '0');
   const costAmount = parseFloat(extensionCost);
   const remainingBalance = currentBalance - costAmount;
 
   // Calculate 1-hour runtime cost for warning
-  const oneHourCost = parseFloat(
-    calculateExtensionCost(session.pricePerSecond, 60)
-  );
+  const oneHourCost = parseFloat(calculateExtensionCost(pricePerSecond, 60));
   const showLowBalanceWarning = remainingBalance < oneHourCost;
 
   /**
@@ -246,7 +256,7 @@ export function SessionExtensionModal({
                 <div className="mb-6 p-4 bg-gray-800/50 rounded-lg">
                   <div className="text-sm text-gray-400 mb-1">현재 만료 시간</div>
                   <div className="text-white font-medium">
-                    {formatExpiration(session.extendedUntil)}
+                    {formatExpiration(extendedUntil)}
                   </div>
                 </div>
 
@@ -260,7 +270,7 @@ export function SessionExtensionModal({
                   <div className="grid grid-cols-2 gap-3 mb-3">
                     {DURATION_PRESETS.map((preset) => {
                       const presetCost = calculateExtensionCost(
-                        session.pricePerSecond,
+                        pricePerSecond,
                         preset.minutes
                       );
                       const isSelected =

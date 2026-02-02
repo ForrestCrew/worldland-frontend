@@ -194,3 +194,61 @@ export function isNetworkError(error: unknown): boolean {
     'ProviderNotFoundError',
   ].includes(baseError.name || '');
 }
+
+/**
+ * ADR-001 confirmation error mapping
+ * Maps backend error responses to user-friendly messages with actionable guidance
+ *
+ * Status codes from Phase 14 backend:
+ * - 202: Transaction verification in progress (retry expected)
+ * - 400: Invalid txHash format or session not in PENDING state
+ * - 403: User not authorized for session
+ * - 409: txHash already used by another session
+ * - 500: Server/container provisioning error
+ */
+export const confirmationErrorMessages: Record<number, {
+  title: string;
+  message: string;
+  canRetry: boolean;
+}> = {
+  202: {
+    title: '트랜잭션 확인 중',
+    message: '블록체인에서 트랜잭션을 확인하고 있습니다. 잠시만 기다려 주세요.',
+    canRetry: true,
+  },
+  400: {
+    title: '잘못된 요청',
+    message: '트랜잭션 해시가 유효하지 않거나 세션 상태가 올바르지 않습니다.',
+    canRetry: false,
+  },
+  403: {
+    title: '권한 없음',
+    message: '이 세션에 대한 권한이 없습니다. 지갑 주소를 확인해 주세요.',
+    canRetry: false,
+  },
+  409: {
+    title: '중복 트랜잭션',
+    message: '이 트랜잭션은 이미 다른 세션에서 사용되었습니다.',
+    canRetry: false,
+  },
+  500: {
+    title: '서버 오류',
+    message: '컨테이너 시작에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+    canRetry: true,
+  },
+};
+
+/**
+ * Get user-friendly error message for confirmation status
+ */
+export function getConfirmationErrorMessage(status: number): {
+  title: string;
+  message: string;
+  canRetry: boolean;
+} {
+  return confirmationErrorMessages[status] || {
+    title: '알 수 없는 오류',
+    message: '예상치 못한 오류가 발생했습니다. 지원팀에 문의해 주세요.',
+    canRetry: false,
+  };
+}

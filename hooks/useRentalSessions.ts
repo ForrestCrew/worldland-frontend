@@ -48,6 +48,12 @@ export interface RentalSession {
   sshUser?: string;
   /** SSH password (only shown during active session) */
   sshPassword?: string;
+  /** Extended expiration time (ISO timestamp, nullable) - Phase 16 */
+  extendedUntil?: string;
+  /** Number of times this session has been extended - Phase 16 */
+  extensionCount?: number;
+  /** Current deposit balance in USDT - Phase 16 */
+  balance?: string;
 }
 
 /**

@@ -39,3 +39,6 @@ export * from './useCountdown';
 // ADR-001 rental confirmation hooks
 export * from './useConfirmRental';
 export * from './useCancelSession';
+
+// Session extension hooks (Phase 17)
+export * from './useExtendSession';

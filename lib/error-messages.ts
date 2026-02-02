@@ -252,3 +252,20 @@ export function getConfirmationErrorMessage(status: number): {
     canRetry: false,
   };
 }
+
+/**
+ * Session extension error mapping
+ * Maps backend error codes from Phase 16-03 to user-friendly Korean messages
+ *
+ * Error codes:
+ * - EXT_001: Session not found
+ * - EXT_002: Insufficient balance
+ * - EXT_003: Session not in RUNNING state
+ * - EXT_004: Maximum extensions reached (10)
+ */
+export const EXTENSION_ERROR_MESSAGES: Record<string, string> = {
+  EXT_001: '세션을 찾을 수 없습니다',
+  EXT_002: '잔액이 부족합니다. 입금 후 다시 시도해 주세요.',
+  EXT_003: '실행 중인 세션만 연장할 수 있습니다',
+  EXT_004: '최대 연장 횟수(10회)에 도달했습니다',
+};

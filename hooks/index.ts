@@ -43,3 +43,6 @@ export * from './useCancelSession';
 // Session extension hooks (Phase 17)
 export * from './useExtendSession';
 export * from './useSessionTimer';
+
+// Base image selection hooks (Phase 24)
+export * from './useImages';

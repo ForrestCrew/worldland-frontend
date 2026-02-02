@@ -93,12 +93,22 @@ export function useRentalStatus(
   } = useQuery({
     queryKey: ['rental', sessionId, 'status'],
     queryFn: async (): Promise<RentalStatusData> => {
+      // Get SIWE token from localStorage
+      const storedAuth = localStorage.getItem('worldland_auth');
+      const token = storedAuth ? JSON.parse(storedAuth).token : null;
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${HUB_API_URL}/api/v1/rentals/${sessionId}`, {
         method: 'GET',
-        credentials: 'include', // SIWE session auth
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        credentials: 'include',
+        headers,
       });
 
       if (!response.ok) {

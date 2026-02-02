@@ -101,7 +101,11 @@ class HubApiClient {
     return this.request('/api/v1/nodes');
   }
 
-  // Rental endpoints (for future use)
+  // Rental endpoints
+  async getRentals(): Promise<unknown[]> {
+    return this.request('/api/v1/rentals');
+  }
+
   async findProviders(params: unknown): Promise<unknown[]> {
     return this.request('/api/v1/rentals/providers', {
       method: 'POST',

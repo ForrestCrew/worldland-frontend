@@ -132,14 +132,24 @@ export function useStartRental(): UseStartRentalReturn {
     nodeId: string;
     txHash: string;
   }): Promise<SSHCredentials> => {
+    // Get SIWE token from localStorage
+    const storedAuth = localStorage.getItem('worldland_auth');
+    const token = storedAuth ? JSON.parse(storedAuth).token : null;
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const response = await fetch(
       `${HUB_API_URL}/api/v1/rentals/${params.nodeId}/start`,
       {
         method: 'POST',
-        credentials: 'include', // SIWE session auth
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        credentials: 'include',
+        headers,
         body: JSON.stringify({
           rentalId: params.rentalId.toString(),
           transactionHash: params.txHash,

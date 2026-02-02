@@ -36,14 +36,14 @@ interface RentalEmptyStateProps {
  * <RentalEmptyState
  *   title="활성 임대 없음"
  *   buttonText="GPU 둘러보기"
- *   linkUrl="/marketplace"
+ *   linkUrl="/rent"
  * />
  */
 export function RentalEmptyState({
   title = '활성 임대 없음',
   description = 'GPU 마켓플레이스에서 필요한 리소스를 찾아보세요',
   buttonText = 'GPU 마켓플레이스 보기',
-  linkUrl = '/marketplace',
+  linkUrl = '/rent',
   className = '',
 }: RentalEmptyStateProps) {
   return (

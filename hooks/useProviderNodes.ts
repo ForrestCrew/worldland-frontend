@@ -88,12 +88,22 @@ export function useProviderNodes(): UseProviderNodesReturn {
         return [];
       }
 
+      // Get SIWE token from localStorage
+      const storedAuth = localStorage.getItem('worldland_auth');
+      const token = storedAuth ? JSON.parse(storedAuth).token : null;
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
       const response = await fetch(`${HUB_API_URL}/api/v1/nodes`, {
         method: 'GET',
-        credentials: 'include', // Include SIWE session cookie
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        credentials: 'include',
+        headers,
       });
 
       if (!response.ok) {

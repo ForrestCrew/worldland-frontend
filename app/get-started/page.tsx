@@ -3,12 +3,12 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-// Redirect to jobs create page
+// Redirect to GPU marketplace
 export default function GetStartedPage() {
   const router = useRouter();
 
   useEffect(() => {
-    router.replace('/jobs/create');
+    router.replace('/rent');
   }, [router]);
 
   return (

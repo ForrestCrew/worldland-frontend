@@ -24,7 +24,7 @@ export default function SessionsPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Back navigation */}
         <Link
-          href="/marketplace"
+          href="/rent"
           className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
         >
           <svg

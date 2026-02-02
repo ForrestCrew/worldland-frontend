@@ -32,3 +32,6 @@ export * from './useStopRental';
 // Indexed history hooks (from Hub indexer API)
 export * from './useIndexedTransactionHistory';
 export * from './useIndexedRentalHistory';
+
+// UI utility hooks
+export * from './useCountdown';

@@ -5,6 +5,9 @@ import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { formatEther } from 'viem';
 import { SSHCredentials, type SSHCredentialsData } from './SSHCredentials';
+import { useCountdown, type UrgencyLevel } from '@/hooks/useCountdown';
+import { useConfirmRental } from '@/hooks/useConfirmRental';
+import { useCancelSession } from '@/hooks/useCancelSession';
 
 /**
  * Rental status type
@@ -27,11 +30,27 @@ export interface RentalSession {
   status: RentalStatus;
   /** When rental started */
   started_at: string;
+  /** When session was created (ISO timestamp) - used for TTL countdown */
+  created_at: string;
   /** Price per second in wei */
   price_per_sec: string;
+  /** Transaction hash submitted for confirmation (Phase 14) */
+  tx_hash?: string;
   /** SSH credentials (only when RUNNING) */
   ssh_credentials?: SSHCredentialsData;
 }
+
+/**
+ * Urgency-based styles for countdown timer
+ * - normal: >= 5 minutes remaining (yellow)
+ * - warning: 2-5 minutes remaining (orange)
+ * - critical: < 2 minutes remaining (red, pulsing)
+ */
+const urgencyStyles: Record<UrgencyLevel, string> = {
+  normal: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400',
+  warning: 'bg-orange-500/10 border-orange-500/30 text-orange-400',
+  critical: 'bg-red-500/10 border-red-500/30 text-red-400 animate-pulse',
+};
 
 /**
  * RentalStatusCard component props
@@ -87,6 +106,143 @@ function StatusBadge({ status }: { status: RentalStatus }) {
       />
       {config.label}
     </span>
+  );
+}
+
+/**
+ * PendingContent - Enhanced pending state UI with countdown timer, retry, and cancel
+ *
+ * Features:
+ * - TTL countdown timer (MM:SS format)
+ * - Color urgency (yellow > 5min, orange 2-5min, red < 2min with pulse)
+ * - Retry button calls /confirm endpoint with same txHash (idempotent)
+ * - Cancel button cancels pending session
+ * - txHash displayed for reference
+ * - Expired state shows "TTL expired" message
+ */
+function PendingContent({
+  rental,
+  onRetry,
+  onCancel,
+}: {
+  rental: RentalSession;
+  onRetry?: () => void;
+  onCancel?: () => void;
+}) {
+  // Calculate TTL expiry (10 minutes from created_at)
+  const ttlExpiry = new Date(rental.created_at);
+  ttlExpiry.setMinutes(ttlExpiry.getMinutes() + 10);
+
+  const { timeRemaining, urgency, isExpired } = useCountdown(ttlExpiry);
+
+  const confirmMutation = useConfirmRental();
+  const cancelMutation = useCancelSession();
+
+  const handleRetry = () => {
+    if (!rental.tx_hash) {
+      // No txHash means user hasn't submitted confirmation yet
+      // This shouldn't happen in normal flow
+      return;
+    }
+    confirmMutation.mutate({
+      sessionId: rental.id,
+      txHash: rental.tx_hash,
+    });
+    onRetry?.();
+  };
+
+  const handleCancel = () => {
+    cancelMutation.mutate({ sessionId: rental.id });
+    onCancel?.();
+  };
+
+  if (isExpired) {
+    return (
+      <div className="bg-gray-800 border border-gray-700 rounded-lg p-4 mb-6">
+        <div className="flex items-center gap-3">
+          <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <div className="text-gray-300 font-medium">TTL 만료됨</div>
+            <div className="text-sm text-gray-500">
+              세션이 자동으로 취소됩니다. 새로 임대를 시작해 주세요.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`border rounded-lg p-4 mb-6 ${urgencyStyles[urgency]}`}>
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-3">
+          <svg
+            className="w-5 h-5 animate-spin"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+          </svg>
+          <div>
+            <div className="font-medium">확인 대기 중</div>
+            <div className="text-sm opacity-70">
+              트랜잭션 검증이 완료되면 SSH 정보가 제공됩니다
+            </div>
+          </div>
+        </div>
+
+        {/* Countdown timer */}
+        <div className="text-right">
+          <div className="text-2xl font-mono font-bold">
+            {String(timeRemaining.minutes).padStart(2, '0')}:
+            {String(timeRemaining.seconds).padStart(2, '0')}
+          </div>
+          <div className="text-xs opacity-70">남은 시간</div>
+        </div>
+      </div>
+
+      {/* Transaction hash (read-only) */}
+      {rental.tx_hash && (
+        <div className="mb-3 p-2 bg-black/20 rounded font-mono text-xs break-all">
+          <span className="opacity-50">tx: </span>
+          {rental.tx_hash}
+        </div>
+      )}
+
+      {/* Action buttons */}
+      <div className="flex gap-2">
+        {rental.tx_hash && (
+          <button
+            onClick={handleRetry}
+            disabled={confirmMutation.isPending}
+            className="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white rounded text-sm font-medium transition-colors"
+          >
+            {confirmMutation.isPending ? (
+              <span className="flex items-center justify-center gap-2">
+                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                재시도 중...
+              </span>
+            ) : (
+              '다시 시도'
+            )}
+          </button>
+        )}
+
+        <button
+          onClick={handleCancel}
+          disabled={cancelMutation.isPending}
+          className="px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-700/50 text-white rounded text-sm font-medium transition-colors"
+        >
+          {cancelMutation.isPending ? '취소 중...' : '취소'}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -167,35 +323,7 @@ export function RentalStatusCard({
 
       {/* Status-specific content */}
       {rental.status === 'PENDING' && (
-        <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
-          <div className="flex items-center gap-3">
-            <svg
-              className="w-5 h-5 text-yellow-400 animate-spin"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              />
-            </svg>
-            <div>
-              <div className="text-yellow-400 font-medium">컨테이너 시작 중</div>
-              <div className="text-sm text-yellow-400/70">
-                SSH 접속 정보가 준비되면 표시됩니다
-              </div>
-            </div>
-          </div>
-        </div>
+        <PendingContent rental={rental} />
       )}
 
       {rental.status === 'RUNNING' && rental.ssh_credentials && (

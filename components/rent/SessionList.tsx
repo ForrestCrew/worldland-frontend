@@ -12,6 +12,10 @@ import { ErrorModal } from '@/components/ui/error-modal';
 
 /**
  * Convert hook session to RentalStatusCard format
+ *
+ * Includes created_at and tx_hash for Phase 15 pending session UX:
+ * - created_at: Used for TTL countdown calculation
+ * - tx_hash: Displayed and used for retry confirmation
  */
 function toCardSession(session: RentalSession): CardSession {
   return {
@@ -21,7 +25,9 @@ function toCardSession(session: RentalSession): CardSession {
     vram_gb: 24, // Default VRAM, would come from node data in full implementation
     status: session.state === 'PENDING' ? 'PENDING' : session.state === 'RUNNING' ? 'RUNNING' : 'STOPPED',
     started_at: session.startTime || new Date().toISOString(),
+    created_at: session.createdAt, // For TTL countdown
     price_per_sec: session.pricePerSecond,
+    tx_hash: session.txHash, // For display and retry
     ssh_credentials: session.sshHost
       ? {
           host: session.sshHost,

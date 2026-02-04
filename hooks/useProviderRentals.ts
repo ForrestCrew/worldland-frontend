@@ -126,7 +126,8 @@ export function useProviderRentals(): UseProviderRentalsReturn {
       }
 
       const data = await response.json();
-      const rentals = data.data ?? data;
+      console.log('[useProviderRentals] API response:', JSON.stringify(data, null, 2));
+      const rentals = data.sessions ?? data.data ?? [];
 
       // Filter to only active rentals
       return rentals.filter((rental: ProviderRental) => rental.status === 'RUNNING');

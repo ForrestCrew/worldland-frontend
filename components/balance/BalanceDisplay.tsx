@@ -2,6 +2,8 @@
 
 import { useContractBalance } from '@/hooks/useContractBalance';
 import { useNetworkGuard } from '@/hooks/useNetworkGuard';
+import { useChainId } from 'wagmi';
+import { sepolia } from 'wagmi/chains';
 
 /**
  * BalanceDisplay component props
@@ -64,6 +66,10 @@ export function BalanceDisplay({
 }: BalanceDisplayProps) {
   const { formatted, fiat, loading } = useContractBalance();
   const { canWrite, isWrongNetwork } = useNetworkGuard();
+  const chainId = useChainId();
+
+  // Token symbol based on network (Sepolia = WLT, BSC = BNB)
+  const tokenSymbol = chainId === sepolia.id ? 'WLT' : 'BNB';
 
   // Button disabled state: wrong network or loading
   const buttonsDisabled = !canWrite || loading;
@@ -88,7 +94,7 @@ export function BalanceDisplay({
 
       {/* Balance value: crypto */}
       <div className="text-2xl font-bold text-white">
-        {formatted} BNB
+        {formatted} {tokenSymbol}
       </div>
 
       {/* Balance value: fiat */}

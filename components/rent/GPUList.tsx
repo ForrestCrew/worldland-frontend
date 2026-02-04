@@ -32,10 +32,13 @@ const columnHelper = createColumnHelper<AvailableGPU>();
 /**
  * Custom sorting function for BigInt price comparison
  * TanStack Table doesn't natively handle BigInt sorting, so we provide a custom sortingFn
+ * Remove decimal part since BigInt doesn't accept decimals
  */
 const bigIntSortingFn: SortingFn<AvailableGPU> = (rowA, rowB) => {
-  const priceA = BigInt(rowA.original.pricePerSecond);
-  const priceB = BigInt(rowB.original.pricePerSecond);
+  const priceAStr = rowA.original.pricePerSecond.split('.')[0] || '0';
+  const priceBStr = rowB.original.pricePerSecond.split('.')[0] || '0';
+  const priceA = BigInt(priceAStr);
+  const priceB = BigInt(priceBStr);
 
   if (priceA < priceB) return -1;
   if (priceA > priceB) return 1;
@@ -158,7 +161,7 @@ export function GPUList({
           const formatted = formatEther(pricePerHour);
           return (
             <div className="text-gray-300 font-mono">
-              {Number(formatted).toFixed(4)} WLC/hr
+              {Number(formatted).toFixed(10)} WLT/hr
             </div>
           );
         },

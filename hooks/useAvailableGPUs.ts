@@ -23,8 +23,10 @@ export interface GPUFilters {
 export interface AvailableGPU {
   /** Node unique identifier */
   nodeId: string;
-  /** Provider wallet address */
+  /** Provider UUID (internal identifier) */
   providerId: string;
+  /** Provider wallet address (for smart contract calls) */
+  providerAddress: string;
   /** GPU model (e.g., "RTX 4090") */
   gpuType: string;
   /** VRAM in GB */
@@ -124,7 +126,7 @@ export function useAvailableGPUs(filters: GPUFilters = {}): UseAvailableGPUsRetu
 
       // Use hubApi client which includes auth token automatically
       const data = await hubApi.findProviders(requestBody);
-      // API returns providers array with node info
+      // API returns { providers: [...], totalCount: N }
       return (Array.isArray(data) ? data : (data as { providers?: AvailableGPU[] }).providers ?? []) as AvailableGPU[];
     },
     staleTime: 10000, // 10 seconds

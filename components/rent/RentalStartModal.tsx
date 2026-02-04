@@ -162,23 +162,30 @@ export function RentalStartModal({
   } = useStartRental();
 
   // Gas estimate for startRental call
-  const gasData = gpu
-    ? encodeFunctionData({
+  // Only calculate gas data when gpu and providerAddress are valid
+  let gasData: `0x${string}` | undefined = undefined;
+  if (gpu && gpu.providerAddress && gpu.providerAddress.startsWith('0x') && gpu.providerAddress.length === 42) {
+    try {
+      gasData = encodeFunctionData({
         abi: WorldlandRentalABI,
         functionName: 'startRental',
-        args: [gpu.providerId as `0x${string}`, BigInt(gpu.pricePerSecond)],
-      })
-    : undefined;
+        args: [gpu.providerAddress as `0x${string}`, BigInt(gpu.pricePerSecond.split('.')[0] || '0')],
+      });
+    } catch {
+      // Silently fail - gas estimate will show as loading
+    }
+  }
 
   const gasEstimate = useGasEstimate({
     to: RENTAL_CONTRACT_ADDRESS,
     data: gasData,
-    enabled: isOpen && !!gpu,
+    enabled: isOpen && !!gpu && !!gasData,
   });
 
   // Calculate price per hour for display
+  // Remove decimal part since BigInt doesn't accept decimals
   const pricePerHour = gpu
-    ? formatEther(BigInt(gpu.pricePerSecond) * BigInt(3600))
+    ? formatEther(BigInt(gpu.pricePerSecond.split('.')[0] || '0') * BigInt(3600))
     : '0';
 
   /**
@@ -201,6 +208,12 @@ export function RentalStartModal({
   const handleStartRental = useCallback(async () => {
     if (!gpu) return;
 
+    // Validate provider address exists
+    if (!gpu.providerAddress) {
+      setSSHError('Provider 주소를 찾을 수 없습니다. 다른 GPU를 선택해 주세요.');
+      return;
+    }
+
     // Validate SSH key
     if (!isValidSSHPublicKey(sshPublicKey)) {
       setSSHError('SSH 공개키를 입력해 주세요');
@@ -209,8 +222,9 @@ export function RentalStartModal({
 
     await startRental({
       nodeId: gpu.nodeId,
-      provider: gpu.providerId as `0x${string}`,
-      pricePerSecond: BigInt(gpu.pricePerSecond),
+      provider: gpu.providerAddress as `0x${string}`,
+      pricePerSecond: BigInt(gpu.pricePerSecond.split('.')[0] || '0'),
+      sshPublicKey: sshPublicKey,
       image: selectedImage || undefined, // Send image if selected (preset ID or custom URL)
     });
   }, [gpu, sshPublicKey, selectedImage, startRental]);

@@ -156,10 +156,10 @@ export function RentalList() {
                 {/* Started (relative time) */}
                 <td className="py-4 px-4">
                   <div className="text-gray-400 text-sm">
-                    {formatDistanceToNow(new Date(rental.started_at), {
+                    {rental.started_at ? formatDistanceToNow(new Date(rental.started_at), {
                       addSuffix: true,
                       locale: ko,
-                    })}
+                    }) : '-'}
                   </div>
                 </td>
 

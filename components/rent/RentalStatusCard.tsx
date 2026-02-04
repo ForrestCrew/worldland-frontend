@@ -293,7 +293,9 @@ export function RentalStatusCard({
   });
 
   // Convert per-second price to per-hour for display
-  const pricePerSec = BigInt(rental.price_per_sec);
+  // Remove decimal part since BigInt doesn't accept decimals
+  const pricePerSecStr = rental.price_per_sec.split('.')[0] || '0';
+  const pricePerSec = BigInt(pricePerSecStr);
   const pricePerHour = pricePerSec * BigInt(3600);
   const priceFormatted = formatEther(pricePerHour);
 
@@ -340,7 +342,7 @@ export function RentalStatusCard({
         </div>
         <div>
           <div className="text-sm text-gray-400 mb-1">시간당 비용</div>
-          <div className="text-white">{Number(priceFormatted).toFixed(4)} WLC/hr</div>
+          <div className="text-white font-mono">{Number(priceFormatted).toFixed(10)} WLT/hr</div>
         </div>
       </div>
 

@@ -166,5 +166,7 @@ export interface BaseImage {
  * @returns Array of preset base images
  */
 export async function getImages(): Promise<BaseImage[]> {
-  return hubApi.request<BaseImage[]>('/api/v1/images');
+  const response = await hubApi.request<{ images: BaseImage[]; defaultImage: string }>('/api/v1/images');
+  // API returns { images: [], defaultImage: "..." }, extract the array
+  return response.images ?? [];
 }

@@ -60,7 +60,9 @@ export function NodeDetailCard({
   onEditPrice,
 }: NodeDetailCardProps) {
   // Convert per-second price to per-hour for display
-  const pricePerSec = BigInt(node.price_per_sec);
+  // Remove decimal part since BigInt doesn't accept decimals
+  const pricePerSecStr = node.price_per_sec.split('.')[0] || '0';
+  const pricePerSec = BigInt(pricePerSecStr);
   const pricePerHour = pricePerSec * BigInt(3600);
   const priceFormatted = formatEther(pricePerHour);
 

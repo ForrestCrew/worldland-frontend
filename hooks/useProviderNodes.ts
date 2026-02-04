@@ -9,7 +9,21 @@ import { useAccount } from 'wagmi';
 export type NodeStatus = 'ONLINE' | 'OFFLINE' | 'RENTED';
 
 /**
- * Node data from Hub API
+ * Raw node data from Hub API (camelCase)
+ */
+interface HubNode {
+  id: string;
+  providerId: string;
+  gpuType: string;
+  memoryGb: number;
+  pricePerSecond: string;
+  status: string; // 'active', 'inactive', 'rented'
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Node data for frontend (snake_case for compatibility)
  */
 export interface ProviderNode {
   /** Node unique identifier */
@@ -28,6 +42,37 @@ export interface ProviderNode {
   created_at: string;
   /** Last status update */
   updated_at: string;
+}
+
+/**
+ * Convert Hub API status to frontend NodeStatus
+ */
+function mapNodeStatus(hubStatus: string): NodeStatus {
+  switch (hubStatus?.toLowerCase()) {
+    case 'active':
+    case 'online':
+      return 'ONLINE';
+    case 'rented':
+      return 'RENTED';
+    default:
+      return 'OFFLINE';
+  }
+}
+
+/**
+ * Transform Hub API node to frontend format
+ */
+function transformNode(node: HubNode): ProviderNode {
+  return {
+    id: node.id,
+    provider_address: node.providerId || '',
+    gpu_type: node.gpuType || 'Unknown',
+    vram_gb: node.memoryGb || 0,
+    price_per_sec: node.pricePerSecond || '0',
+    status: mapNodeStatus(node.status),
+    created_at: node.createdAt || '',
+    updated_at: node.updatedAt || '',
+  };
 }
 
 /**
@@ -114,7 +159,9 @@ export function useProviderNodes(): UseProviderNodesReturn {
       }
 
       const data = await response.json();
-      return data.data ?? data;
+      console.log('[useProviderNodes] API response:', JSON.stringify(data, null, 2));
+      const rawNodes: HubNode[] = data.nodes ?? data.data ?? [];
+      return rawNodes.map(transformNode);
     },
     enabled: !!address,
     staleTime: 25000, // 25 seconds

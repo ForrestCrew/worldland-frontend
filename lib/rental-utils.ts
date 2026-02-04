@@ -122,7 +122,7 @@ export function isRetryableHubError(error: Error): boolean {
   }
 
   // Explicit retry indicator from Hub
-  if (message.includes('retry') || message.includes('not ready')) {
+  if (message.includes('retry') || message.includes('not ready') || message.includes('준비 중') || message.includes('pending')) {
     return true;
   }
 

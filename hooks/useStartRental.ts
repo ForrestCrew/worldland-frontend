@@ -33,6 +33,8 @@ export interface StartRentalParams {
   provider: `0x${string}`;
   /** Price per second in wei */
   pricePerSecond: bigint;
+  /** SSH public key for container access */
+  sshPublicKey: string;
   /** Container image (preset ID or custom Docker URL) - optional, uses default if not provided */
   image?: string;
 }
@@ -49,8 +51,8 @@ export interface UseStartRentalReturn {
   txStatus: TransactionStatus;
   /** Transaction hash once available */
   hash: `0x${string}` | undefined;
-  /** Rental ID from blockchain */
-  rentalId: bigint | null;
+  /** Session ID from Hub */
+  sessionId: string | null;
   /** SSH credentials from Hub API */
   sshCredentials: SSHCredentials | null;
   /** Error object if failed */
@@ -64,36 +66,53 @@ export interface UseStartRentalReturn {
 }
 
 /**
- * Hook for starting GPU rental with 2-phase flow
+ * Get auth headers from localStorage
+ */
+function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  const storedAuth = localStorage.getItem('worldland_auth');
+  if (storedAuth) {
+    try {
+      const { token } = JSON.parse(storedAuth);
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    } catch {
+      // Ignore parse errors
+    }
+  }
+
+  return headers;
+}
+
+/**
+ * Hook for starting GPU rental with proper 4-step flow
  *
- * Phase 1: Blockchain transaction (startRental on contract)
- * Phase 2: Hub API call with retry (notify Hub + get SSH credentials)
- *
- * Implements retry with backoff during blockchain lag window (15-30s)
- * when Hub hasn't processed the blockchain event yet.
+ * Step 1: Create session on Hub (POST /rentals)
+ * Step 2: Blockchain transaction (startRental on contract)
+ * Step 3: Confirm session on Hub (POST /rentals/:sessionId/confirm)
+ * Step 4: Start rental on Hub (POST /rentals/:sessionId/start)
  *
  * @example
  * const { startRental, stage, txStatus, sshCredentials, errorMessage, reset } = useStartRental();
  *
- * // Start rental
  * const creds = await startRental({
  *   nodeId: 'node-123',
  *   provider: '0x1234...',
  *   pricePerSecond: parseUnits('0.001', 18),
+ *   sshPublicKey: 'ssh-ed25519 AAAA...',
  * });
- *
- * // Check stage for UI feedback
- * if (stage === 'blockchain') showMessage('블록체인 트랜잭션 처리 중...');
- * if (stage === 'hub') showMessage('GPU 연결 준비 중...');
- * if (stage === 'complete') showSSH(creds);
  */
 export function useStartRental(): UseStartRentalReturn {
   const { address } = useAccount();
   const queryClient = useQueryClient();
 
-  // 2-phase stage tracking
+  // Stage tracking
   const [stage, setStage] = useState<RentalStage>('idle');
-  const [rentalId, setRentalId] = useState<bigint | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [sshCredentials, setSshCredentials] = useState<SSHCredentials | null>(null);
   const [hubError, setHubError] = useState<Error | null>(null);
 
@@ -126,48 +145,76 @@ export function useStartRental(): UseStartRentalReturn {
   const txStatus = getTxStatus();
 
   /**
-   * Call Hub API to notify of rental start and get SSH credentials
-   * Retries during blockchain lag window
+   * Step 1: Create session on Hub
    */
-  const notifyHubStart = async (params: {
-    rentalId: bigint;
+  const createSession = async (params: {
     nodeId: string;
-    txHash: string;
+    pricePerSecond: string;
     image?: string;
-  }): Promise<SSHCredentials> => {
-    // Get SIWE token from localStorage
-    const storedAuth = localStorage.getItem('worldland_auth');
-    const token = storedAuth ? JSON.parse(storedAuth).token : null;
-
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
+  }): Promise<string> => {
+    const requestBody = {
+      nodeId: params.nodeId,
+      pricePerSecond: params.pricePerSecond,
+      ...(params.image && { image: params.image }),
     };
+    console.log('[createSession] Request:', requestBody);
+    console.log('[createSession] Auth headers:', getAuthHeaders());
 
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(
-      `${HUB_API_URL}/api/v1/rentals/${params.nodeId}/start`,
-      {
-        method: 'POST',
-        credentials: 'include',
-        headers,
-        body: JSON.stringify({
-          rentalId: params.rentalId.toString(),
-          transactionHash: params.txHash,
-          ...(params.image && { image: params.image }),
-        }),
-      }
-    );
+    const response = await fetch(`${HUB_API_URL}/api/v1/rentals`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(requestBody),
+    });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      const message =
-        errorData.error?.message ||
-        errorData.message ||
-        `Hub API error: ${response.status}`;
-      throw new Error(message);
+      console.error('[createSession] Error response:', response.status, errorData);
+      throw new Error(errorData.error || `세션 생성 실패: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('[createSession] Success:', data);
+    return data.sessionId;
+  };
+
+  /**
+   * Step 3: Confirm session with txHash
+   */
+  const confirmSession = async (sessionId: string, txHash: string): Promise<void> => {
+    const response = await fetch(`${HUB_API_URL}/api/v1/rentals/${sessionId}/confirm`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ txHash }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `세션 확인 실패: ${response.status}`);
+    }
+  };
+
+  /**
+   * Step 4: Start rental and get SSH credentials
+   */
+  const startRentalOnHub = async (sessionId: string, sshPublicKey: string): Promise<SSHCredentials> => {
+    const response = await fetch(`${HUB_API_URL}/api/v1/rentals/${sessionId}/start`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ sshPublicKey }),
+    });
+
+    // 202 means pod is still being provisioned - treat as retryable error
+    if (response.status === 202) {
+      const data = await response.json().catch(() => ({}));
+      throw new Error(data.message || 'Pod가 준비 중입니다. 잠시 후 다시 시도해주세요.');
+    }
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `렌탈 시작 실패: ${response.status}`);
     }
 
     const data = await response.json();
@@ -180,10 +227,7 @@ export function useStartRental(): UseStartRentalReturn {
   };
 
   /**
-   * Start rental with 2-phase flow
-   *
-   * 1. Submit blockchain transaction and wait for confirmation
-   * 2. Call Hub API with retry to get SSH credentials
+   * Execute full rental flow
    */
   const startRental = useCallback(
     async (params: StartRentalParams): Promise<SSHCredentials | null> => {
@@ -195,11 +239,19 @@ export function useStartRental(): UseStartRentalReturn {
         // Reset state
         setHubError(null);
         setSshCredentials(null);
-        setRentalId(null);
+        setSessionId(null);
 
-        // Phase 1: Blockchain transaction
+        // Step 1: Create session on Hub
+        setStage('hub');
+        const newSessionId = await createSession({
+          nodeId: params.nodeId,
+          pricePerSecond: params.pricePerSecond.toString(),
+          image: params.image,
+        });
+        setSessionId(newSessionId);
+
+        // Step 2: Blockchain transaction
         setStage('blockchain');
-
         const txHash = await writeContractAsync({
           address: RENTAL_CONTRACT_ADDRESS,
           abi: WorldlandRentalABI,
@@ -207,28 +259,23 @@ export function useStartRental(): UseStartRentalReturn {
           args: [params.provider, params.pricePerSecond],
         });
 
-        // Wait for transaction to be mined (wagmi handles this via useWaitForTransactionReceipt)
-        // For now, we proceed after getting the hash and let the UI show tx status
-        // The actual confirmation wait happens inside writeContractAsync
-
-        // Extract rental ID from transaction logs would require additional hook
-        // For now, use a placeholder - real implementation would parse logs
-        const newRentalId = BigInt(Date.now()); // Placeholder
-        setRentalId(newRentalId);
-
-        // Phase 2: Hub API call with retry
+        // Step 3: Confirm session with retry (Hub may need time to see the tx)
         setStage('hub');
-
-        const credentials = await retryWithBackoff(
-          () =>
-            notifyHubStart({
-              rentalId: newRentalId,
-              nodeId: params.nodeId,
-              txHash,
-              image: params.image,
-            }),
+        await retryWithBackoff(
+          () => confirmSession(newSessionId, txHash),
           {
             maxRetries: 6,
+            delayMs: 3000,
+            shouldRetry: isRetryableHubError,
+          }
+        );
+
+        // Step 4: Start rental and get SSH credentials
+        // Large images (CUDA) can take 1-2 minutes to pull, so retry longer
+        const credentials = await retryWithBackoff(
+          () => startRentalOnHub(newSessionId, params.sshPublicKey),
+          {
+            maxRetries: 20,
             delayMs: 5000,
             shouldRetry: isRetryableHubError,
           }
@@ -260,7 +307,7 @@ export function useStartRental(): UseStartRentalReturn {
   const reset = useCallback(() => {
     resetWrite();
     setStage('idle');
-    setRentalId(null);
+    setSessionId(null);
     setSshCredentials(null);
     setHubError(null);
   }, [resetWrite]);
@@ -277,7 +324,7 @@ export function useStartRental(): UseStartRentalReturn {
     stage,
     txStatus,
     hash,
-    rentalId,
+    sessionId,
     sshCredentials,
     error,
     errorMessage,

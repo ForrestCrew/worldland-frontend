@@ -18,11 +18,14 @@ import { ErrorModal } from '@/components/ui/error-modal';
  * - tx_hash: Displayed and used for retry confirmation
  */
 function toCardSession(session: RentalSession): CardSession {
+  // Debug: Log session data to verify API response
+  console.log('[SessionList] Session data:', JSON.stringify(session, null, 2));
+
   return {
     id: session.id,
     node_id: session.nodeId,
-    gpu_type: session.gpuType,
-    vram_gb: 24, // Default VRAM, would come from node data in full implementation
+    gpu_type: session.gpuType || 'Unknown',
+    vram_gb: session.memoryGb || 0, // Use memoryGb from API
     status: session.state === 'PENDING' ? 'PENDING' : session.state === 'RUNNING' ? 'RUNNING' : 'STOPPED',
     started_at: session.startTime || new Date().toISOString(),
     created_at: session.createdAt, // For TTL countdown
@@ -45,10 +48,10 @@ function toCardSession(session: RentalSession): CardSession {
 function toCompletedSession(session: RentalSession): CompletedSession {
   return {
     id: session.id,
-    gpuType: session.gpuType,
+    gpuType: session.gpuType || 'Unknown',
     state: session.state as 'STOPPED' | 'CANCELLED',
     startTime: session.startTime,
-    stopTime: session.stopTime,
+    stopTime: session.stopTime || session.endTime, // API returns endTime
     settlementAmount: session.settlementAmount,
   };
 }

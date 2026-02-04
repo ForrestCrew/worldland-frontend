@@ -24,6 +24,8 @@ export interface RentalSession {
   providerId: string;
   /** GPU model */
   gpuType: string;
+  /** GPU VRAM in GB */
+  memoryGb: number;
   /** Price per second in wei */
   pricePerSecond: string;
   /** Current session state */
@@ -36,8 +38,10 @@ export interface RentalSession {
   createdAt: string;
   /** When rental started (ISO timestamp) */
   startTime?: string;
-  /** When rental stopped (ISO timestamp) */
+  /** When rental stopped (ISO timestamp) - API returns as endTime */
   stopTime?: string;
+  /** Alias for stopTime from API */
+  endTime?: string;
   /** Total settlement amount in wei */
   settlementAmount?: string;
   /** SSH host for connection */
@@ -166,6 +170,8 @@ export function useRentalSessions(): UseRentalSessionsReturn {
       }
 
       const data = await response.json();
+      // Debug: Log raw API response
+      console.log('[useRentalSessions] Raw API response:', JSON.stringify(data, null, 2));
       return (data.sessions ?? data.data ?? []) as RentalSession[];
     },
     enabled: !!address,

@@ -89,12 +89,16 @@ export function NodeList({ nodes, onEditPrice }: NodeListProps) {
         header: '가격',
         cell: (info) => {
           // Convert per-second to per-hour for display
-          const pricePerSec = BigInt(info.getValue());
+          const value = info.getValue();
+          if (!value) {
+            return <div className="text-gray-500">-</div>;
+          }
+          const pricePerSec = BigInt(value);
           const pricePerHour = pricePerSec * BigInt(3600);
           const formatted = formatEther(pricePerHour);
           return (
             <div className="text-gray-300">
-              {Number(formatted).toFixed(4)} WLC/hr
+              {Number(formatted).toFixed(6)} WLT/hr
             </div>
           );
         },

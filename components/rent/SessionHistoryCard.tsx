@@ -134,9 +134,16 @@ export function SessionHistoryCard({
   // Calculate duration
   const duration = calculateDuration(session.startTime, session.stopTime);
 
-  // Format settlement amount
+  // Format settlement amount - use more decimal places for small amounts
   const settlementFormatted = session.settlementAmount
-    ? Number(formatEther(BigInt(session.settlementAmount))).toFixed(4)
+    ? (() => {
+        const ethValue = Number(formatEther(BigInt(session.settlementAmount)));
+        // If value is very small, show more decimals
+        if (ethValue > 0 && ethValue < 0.0001) {
+          return ethValue.toFixed(10).replace(/\.?0+$/, ''); // Remove trailing zeros
+        }
+        return ethValue.toFixed(4);
+      })()
     : '0.0000';
 
   // Truncate session ID for display

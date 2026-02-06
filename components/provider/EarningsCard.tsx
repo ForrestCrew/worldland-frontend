@@ -41,10 +41,14 @@ export function EarningsCard() {
     { value: 'all', label: '전체' },
   ];
 
-  // Helper: Format number with thousands separator
+  // Helper: Format number - show more decimals for small values
   const formatNumber = (value: string): string => {
     const num = parseFloat(value);
-    if (isNaN(num)) return '0.0000';
+    if (isNaN(num) || num === 0) return '0.0000';
+    // Small values: show up to 8 decimals
+    if (num > 0 && num < 0.0001) {
+      return num.toFixed(8).replace(/\.?0+$/, '');
+    }
     return num.toLocaleString('ko-KR', {
       minimumFractionDigits: 4,
       maximumFractionDigits: 4,
@@ -123,7 +127,7 @@ export function EarningsCard() {
           <div className="p-4 bg-gray-800/50 rounded-lg">
             <div className="text-sm text-gray-400 mb-1">총 수익</div>
             <div className="text-2xl font-bold text-white font-mono">
-              {totalEarnedFormatted} <span className="text-lg text-gray-400">BNB</span>
+              {totalEarnedFormatted} <span className="text-lg text-gray-400">WLC</span>
             </div>
           </div>
 
@@ -131,7 +135,7 @@ export function EarningsCard() {
           <div className="p-4 bg-gray-800/50 rounded-lg border-2 border-purple-500/20">
             <div className="text-sm text-gray-400 mb-1">출금 가능</div>
             <div className="text-2xl font-bold text-purple-400 font-mono">
-              {withdrawableFormatted} <span className="text-lg text-gray-400">BNB</span>
+              {withdrawableFormatted} <span className="text-lg text-gray-400">WLC</span>
             </div>
           </div>
 
@@ -139,7 +143,7 @@ export function EarningsCard() {
           <div className="p-4 bg-gray-800/50 rounded-lg">
             <div className="text-sm text-gray-400 mb-1">정산 대기</div>
             <div className="text-2xl font-bold text-white font-mono">
-              {pendingFormatted} <span className="text-lg text-gray-400">BNB</span>
+              {pendingFormatted} <span className="text-lg text-gray-400">WLC</span>
             </div>
             <div className="mt-2 text-xs text-gray-500">
               정산은 매시간 자동으로 처리됩니다

@@ -78,7 +78,7 @@ export function useContractBalance(): ContractBalanceState {
     balance: balanceValue,
     formatted: balanceFormatted,
     fiat: balanceFiat,
-    symbol: 'BNB',
+    symbol: 'WLC',
     loading: isLoading || isFetching || fiatLoading,
     refetch: () => {
       refetch();

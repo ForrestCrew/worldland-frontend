@@ -147,7 +147,7 @@ function TransactionRow({
         }`}
       >
         {isDeposit ? '+' : '-'}
-        {parseFloat(transaction.amount).toFixed(4)} BNB
+        {parseFloat(transaction.amount).toFixed(4)} WLC
       </div>
 
       {/* Right: Explorer link */}

@@ -206,7 +206,7 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
               출금 가능 금액
             </div>
             <div className="text-lg font-mono text-white">
-              {availableBalance} BNB
+              {availableBalance} WLC
             </div>
           </div>
 
@@ -239,7 +239,7 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                 >
                   최대
                 </button>
-                <span className="text-gray-400">BNB</span>
+                <span className="text-gray-400">WLC</span>
               </div>
             </div>
             {/* Validation error */}

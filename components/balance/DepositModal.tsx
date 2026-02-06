@@ -186,7 +186,7 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
                 `}
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
-                BNB
+                WLC
               </span>
             </div>
           </div>

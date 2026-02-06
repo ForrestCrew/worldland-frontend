@@ -68,8 +68,8 @@ export function BalanceDisplay({
   const { canWrite, isWrongNetwork } = useNetworkGuard();
   const chainId = useChainId();
 
-  // Token symbol based on network (Sepolia = WLT, BSC = BNB)
-  const tokenSymbol = chainId === sepolia.id ? 'WLT' : 'BNB';
+  // Token symbol
+  const tokenSymbol = 'WLC';
 
   // Button disabled state: wrong network or loading
   const buttonsDisabled = !canWrite || loading;

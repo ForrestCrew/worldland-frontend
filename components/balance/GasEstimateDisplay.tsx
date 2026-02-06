@@ -47,7 +47,7 @@ export function GasEstimateDisplay({
   className = '',
 }: GasEstimateDisplayProps) {
   // Check if gas estimate is invalid/unavailable
-  const isInvalid = !gasCrypto || gasCrypto === '0 BNB' || gasCrypto === '';
+  const isInvalid = !gasCrypto || gasCrypto === '0 WLC' || gasCrypto === '';
   const showSkeleton = loading || isInvalid;
 
   if (showSkeleton && loading) {

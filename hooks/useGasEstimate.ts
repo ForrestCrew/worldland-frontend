@@ -108,8 +108,8 @@ export function useGasEstimate(params: UseGasEstimateParams): GasEstimateResult 
   // Format display values
   const gasCrypto =
     gasCostWei > BigInt(0)
-      ? `${Number(gasCostEth).toFixed(6)} BNB`
-      : '0 BNB';
+      ? `${Number(gasCostEth).toFixed(6)} WLC`
+      : '0 WLC';
   const gasFiat = gasFiatValue > 0 ? formatUSD(gasFiatValue) : '$0.00';
 
   return {

@@ -28,6 +28,8 @@ export interface RentalSession {
   memoryGb: number;
   /** Price per second in wei */
   pricePerSecond: string;
+  /** Price per hour in human-readable WLC (e.g., "1.50") */
+  pricePerHour: string;
   /** Current session state */
   state: RentalSessionState;
   /** Blockchain rental ID (from contract RentalStarted event) - required for stopRental */
@@ -44,6 +46,8 @@ export interface RentalSession {
   endTime?: string;
   /** Total settlement amount in wei */
   settlementAmount?: string;
+  /** Human-readable settlement amount in WLC (e.g., "1.50") */
+  settlementAmountDisplay?: string;
   /** SSH host for connection */
   sshHost?: string;
   /** SSH port for connection */

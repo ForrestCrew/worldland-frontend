@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { formatEther, encodeFunctionData } from 'viem';
+import { encodeFunctionData } from 'viem';
 import { useStartRental } from '@/hooks/useStartRental';
 import { useGasEstimate } from '@/hooks/useGasEstimate';
 import { GasEstimateDisplay } from '@/components/balance/GasEstimateDisplay';
@@ -182,11 +182,8 @@ export function RentalStartModal({
     enabled: isOpen && !!gpu && !!gasData,
   });
 
-  // Calculate price per hour for display
-  // Remove decimal part since BigInt doesn't accept decimals
-  const pricePerHour = gpu
-    ? formatEther(BigInt(gpu.pricePerSecond.split('.')[0] || '0') * BigInt(3600))
-    : '0';
+  // Use backend-provided human-readable price per hour for display
+  const pricePerHourDisplay = gpu?.pricePerHour || '0.00';
 
   /**
    * Handle SSH key input change
@@ -353,7 +350,7 @@ export function RentalStartModal({
               <div className="col-span-2">
                 <div className="text-sm text-gray-400">시간당 비용</div>
                 <div className="text-white font-medium font-mono">
-                  {Number(pricePerHour).toFixed(4)} WLC/hr
+                  {Number(pricePerHourDisplay).toFixed(2)} WLC/hr
                 </div>
               </div>
             </div>

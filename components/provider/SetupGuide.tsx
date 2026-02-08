@@ -1,20 +1,16 @@
 'use client';
 
-/**
- * SetupGuide component props
- */
+import Link from 'next/link';
+
 interface SetupGuideProps {
-  /** Callback to refetch nodes (optional) */
   onRefresh?: () => void;
 }
-
-const SDK_URL = 'https://github.com/ForrestCrew/worldland-sdk';
 
 /**
  * SetupGuide - Empty state onboarding for new providers
  *
  * Displayed when provider has 0 registered nodes.
- * Directs providers to the worldland-sdk for GPU node registration.
+ * Provides links to Docker SDK and K8s registration.
  */
 export function SetupGuide({ onRefresh }: SetupGuideProps) {
   return (
@@ -29,40 +25,46 @@ export function SetupGuide({ onRefresh }: SetupGuideProps) {
         </p>
       </div>
 
-      {/* SDK guide */}
+      {/* Registration options */}
       <div className="w-full max-w-3xl">
-        <div className="p-8 bg-gray-800 border border-gray-700 rounded-xl">
-          <h3 className="text-xl font-semibold text-white mb-3">
-            GPU 노드 등록 방법
-          </h3>
-          <p className="text-gray-400 mb-6">
-            GPU 노드 등록은 Worldland SDK를 통해 진행됩니다.
-            아래 링크에서 설치 및 등록 방법을 확인하세요.
-          </p>
-          <a
-            href={SDK_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="
-              block w-full px-6 py-4 rounded-lg text-white font-medium text-lg
-              bg-purple-600 hover:bg-purple-700
-              transition-colors text-center
-            "
-          >
-            Worldland SDK 바로가기
-          </a>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Docker option */}
+          <div className="p-8 bg-gray-800 border border-gray-700 rounded-xl">
+            <div className="text-3xl mb-3">🐳</div>
+            <h3 className="text-xl font-semibold text-white mb-2">Docker 프로바이더</h3>
+            <p className="text-gray-400 mb-6 text-sm">
+              개인 GPU를 SDK로 간편하게 등록하세요. Docker만 설치되어 있으면 됩니다.
+            </p>
+            <Link
+              href="/provider/register"
+              className="block w-full px-6 py-3 rounded-lg text-white font-medium bg-purple-600 hover:bg-purple-700 transition-colors text-center"
+            >
+              등록하기
+            </Link>
+          </div>
+
+          {/* K8s option */}
+          <div className="p-8 bg-gray-800 border border-gray-700 rounded-xl">
+            <div className="text-3xl mb-3">☸️</div>
+            <h3 className="text-xl font-semibold text-white mb-2">K8s 프로바이더</h3>
+            <p className="text-gray-400 mb-6 text-sm">
+              데이터센터 K8s 클러스터를 kubeconfig로 등록하세요. 대규모 GPU 풀을 관리합니다.
+            </p>
+            <Link
+              href="/provider/register"
+              className="block w-full px-6 py-3 rounded-lg text-white font-medium bg-blue-600 hover:bg-blue-700 transition-colors text-center"
+            >
+              등록하기
+            </Link>
+          </div>
         </div>
       </div>
 
       {/* Refresh button */}
-      <div className="mt-8">
+      <div className="mt-4">
         <button
           onClick={() => onRefresh ? onRefresh() : window.location.reload()}
-          className="
-            px-8 py-3 rounded-lg text-gray-300 font-medium
-            bg-gray-800 hover:bg-gray-700 border border-gray-700
-            transition-colors
-          "
+          className="px-8 py-3 rounded-lg text-gray-300 font-medium bg-gray-800 hover:bg-gray-700 border border-gray-700 transition-colors"
         >
           새로고침
         </button>

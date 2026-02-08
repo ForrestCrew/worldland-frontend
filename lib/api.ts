@@ -112,6 +112,49 @@ class HubApiClient {
       body: JSON.stringify(params),
     });
   }
+
+  // K8s Provider Registration
+  async registerK8sProvider(params: {
+    walletAddress: string;
+    kubeconfig: string;
+  }): Promise<{ providerId: string; clusterHost: string; message: string }> {
+    return this.request('/api/v1/providers/k8s', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  // Mining Management
+  async startMining(providerId: string, params: { gpuCount?: number; image?: string } = {}): Promise<unknown> {
+    return this.request(`/api/v1/providers/${providerId}/mining/start`, {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  }
+
+  async stopMining(providerId: string): Promise<unknown> {
+    return this.request(`/api/v1/providers/${providerId}/mining/stop`, {
+      method: 'POST',
+    });
+  }
+
+  async getMiningStatus(providerId: string): Promise<MiningStatusResponse> {
+    return this.request(`/api/v1/providers/${providerId}/mining`);
+  }
+
+  async allocateMiningGPU(providerId: string, gpuCount: number): Promise<GPUAllocationResponse> {
+    return this.request(`/api/v1/providers/${providerId}/mining/allocate`, {
+      method: 'POST',
+      body: JSON.stringify({ gpuCount }),
+    });
+  }
+
+  async releaseMiningGPU(providerId: string, gpuCount: number): Promise<GPUAllocationResponse> {
+    return this.request(`/api/v1/providers/${providerId}/mining/release`, {
+      method: 'POST',
+      body: JSON.stringify({ gpuCount }),
+    });
+  }
 }
 
 export class ApiError extends Error {
@@ -131,6 +174,35 @@ export const hubApi = new HubApiClient(HUB_API_URL);
 
 // Export for direct use
 export { HubApiClient };
+
+// ============================================================================
+// Provider & Mining Types
+// ============================================================================
+
+export type ProviderType = 'docker' | 'k8s';
+
+export interface MiningStatus {
+  status: 'running' | 'stopped' | 'not_found';
+  gpuCount: number;
+  podName?: string;
+}
+
+export interface GPUAllocation {
+  total: number;
+  mining: number;
+  rental: number;
+  available: number;
+}
+
+export interface MiningStatusResponse {
+  mining: MiningStatus;
+  allocation: GPUAllocation;
+}
+
+export interface GPUAllocationResponse {
+  message: string;
+  allocation: GPUAllocation;
+}
 
 // ============================================================================
 // Base Image Selection Types (Phase 24)

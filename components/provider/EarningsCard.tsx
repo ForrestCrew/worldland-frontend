@@ -41,17 +41,13 @@ export function EarningsCard() {
     { value: 'all', label: '전체' },
   ];
 
-  // Helper: Format number - show more decimals for small values
+  // Helper: Format number - consistent 2 decimal display
   const formatNumber = (value: string): string => {
     const num = parseFloat(value);
-    if (isNaN(num) || num === 0) return '0.0000';
-    // Small values: show up to 8 decimals
-    if (num > 0 && num < 0.0001) {
-      return num.toFixed(8).replace(/\.?0+$/, '');
-    }
+    if (isNaN(num) || num === 0) return '0.00';
     return num.toLocaleString('ko-KR', {
-      minimumFractionDigits: 4,
-      maximumFractionDigits: 4,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     });
   };
 

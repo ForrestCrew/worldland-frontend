@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { formatEther } from 'viem';
 import { SSHCredentials, type SSHCredentialsData } from './SSHCredentials';
 import { SessionExtensionModal } from './SessionExtensionModal';
 import { SessionCountdownTimer } from './SessionCountdownTimer';
@@ -38,6 +37,8 @@ export interface RentalSession {
   created_at: string;
   /** Price per second in wei */
   price_per_sec: string;
+  /** Price per hour in human-readable WLC (e.g., "1.50") */
+  price_per_hour?: string;
   /** Transaction hash submitted for confirmation (Phase 14) */
   tx_hash?: string;
   /** SSH credentials (only when RUNNING) */
@@ -292,12 +293,8 @@ export function RentalStatusCard({
     locale: ko,
   });
 
-  // Convert per-second price to per-hour for display
-  // Remove decimal part since BigInt doesn't accept decimals
-  const pricePerSecStr = rental.price_per_sec.split('.')[0] || '0';
-  const pricePerSec = BigInt(pricePerSecStr);
-  const pricePerHour = pricePerSec * BigInt(3600);
-  const priceFormatted = formatEther(pricePerHour);
+  // Use backend-provided human-readable price per hour
+  const pricePerHourDisplay = rental.price_per_hour || '0.00';
 
   // Handle stop button click
   const handleStop = async () => {
@@ -342,7 +339,7 @@ export function RentalStatusCard({
         </div>
         <div>
           <div className="text-sm text-gray-400 mb-1">시간당 비용</div>
-          <div className="text-white font-mono">{Number(priceFormatted).toFixed(10)} WLT/hr</div>
+          <div className="text-white font-mono">{Number(pricePerHourDisplay).toFixed(2)} WLC/hr</div>
         </div>
       </div>
 

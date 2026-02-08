@@ -2,7 +2,6 @@
 
 import { format, formatDistanceStrict } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { formatEther } from 'viem';
 
 /**
  * Session state for completed sessions
@@ -25,6 +24,8 @@ export interface CompletedSession {
   stopTime?: string;
   /** Total settlement amount in wei */
   settlementAmount?: string;
+  /** Human-readable settlement amount in WLC */
+  settlementAmountDisplay?: string;
 }
 
 /**
@@ -134,17 +135,8 @@ export function SessionHistoryCard({
   // Calculate duration
   const duration = calculateDuration(session.startTime, session.stopTime);
 
-  // Format settlement amount - use more decimal places for small amounts
-  const settlementFormatted = session.settlementAmount
-    ? (() => {
-        const ethValue = Number(formatEther(BigInt(session.settlementAmount)));
-        // If value is very small, show more decimals
-        if (ethValue > 0 && ethValue < 0.0001) {
-          return ethValue.toFixed(10).replace(/\.?0+$/, ''); // Remove trailing zeros
-        }
-        return ethValue.toFixed(4);
-      })()
-    : '0.0000';
+  // Use backend-provided human-readable settlement amount
+  const settlementFormatted = session.settlementAmountDisplay || '0.00';
 
   // Truncate session ID for display
   const truncatedId =

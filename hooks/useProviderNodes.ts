@@ -17,6 +17,7 @@ interface HubNode {
   gpuType: string;
   memoryGb: number;
   pricePerSecond: string;
+  pricePerHour: string; // Human-readable WLC/hr from backend
   status: string; // 'active', 'inactive', 'rented'
   createdAt: string;
   updatedAt: string;
@@ -36,8 +37,12 @@ export interface ProviderNode {
   vram_gb: number;
   /** Price per second in wei */
   price_per_sec: string;
+  /** Price per hour in human-readable WLC (e.g., "1.50") */
+  price_per_hour: string;
   /** Current node status */
   status: NodeStatus;
+  /** Provider type */
+  provider_type?: 'docker' | 'k8s';
   /** When node was registered */
   created_at: string;
   /** Last status update */
@@ -69,6 +74,7 @@ function transformNode(node: HubNode): ProviderNode {
     gpu_type: node.gpuType || 'Unknown',
     vram_gb: node.memoryGb || 0,
     price_per_sec: node.pricePerSecond || '0',
+    price_per_hour: node.pricePerHour || '0.00',
     status: mapNodeStatus(node.status),
     created_at: node.createdAt || '',
     updated_at: node.updatedAt || '',

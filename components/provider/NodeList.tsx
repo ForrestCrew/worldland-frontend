@@ -9,7 +9,6 @@ import {
   createColumnHelper,
   type SortingState,
 } from '@tanstack/react-table';
-import { formatEther } from 'viem';
 import type { ProviderNode } from '@/hooks/useProviderNodes';
 
 /**
@@ -84,21 +83,17 @@ export function NodeList({ nodes, onEditPrice }: NodeListProps) {
           );
         },
       }),
-      columnHelper.accessor('price_per_sec', {
+      columnHelper.accessor('price_per_hour', {
         id: 'price',
         header: '가격',
         cell: (info) => {
-          // Convert per-second to per-hour for display
           const value = info.getValue();
-          if (!value) {
+          if (!value || value === '0.00') {
             return <div className="text-gray-500">-</div>;
           }
-          const pricePerSec = BigInt(value);
-          const pricePerHour = pricePerSec * BigInt(3600);
-          const formatted = formatEther(pricePerHour);
           return (
             <div className="text-gray-300">
-              {Number(formatted).toFixed(6)} WLT/hr
+              {Number(value).toFixed(2)} WLC/hr
             </div>
           );
         },

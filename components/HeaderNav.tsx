@@ -92,6 +92,8 @@ export default function HeaderNav() {
                 { label: 'Provider 대시보드', href: '/provider', description: '노드 관리 및 수익 확인' },
                 { label: '내 노드', href: '/provider/nodes', description: '등록된 GPU 노드 목록' },
                 { label: '수익 현황', href: '/provider/earnings', description: '임대 수익 및 정산 내역' },
+                { label: '프로바이더 등록', href: '/provider/register', description: 'Docker 또는 K8s 프로바이더 등록' },
+                { label: '채굴 관리', href: '/provider/mining', description: 'K8s 채굴 GPU 할당 및 관리' },
             ],
         },
         {

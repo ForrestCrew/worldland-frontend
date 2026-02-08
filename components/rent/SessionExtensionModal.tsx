@@ -57,7 +57,7 @@ const DURATION_PRESETS: DurationPreset[] = [
  */
 function calculateExtensionCost(pricePerSecond: string, minutes: number): string {
   const pricePerMin = parseFloat(pricePerSecond) * 60;
-  return (pricePerMin * minutes).toFixed(6);
+  return (pricePerMin * minutes).toFixed(2);
 }
 
 /**
@@ -290,7 +290,7 @@ export function SessionExtensionModal({
                         >
                           <div className="font-medium">{preset.label}</div>
                           <div className="text-xs mt-1 opacity-70">
-                            +{Number(presetCost).toFixed(4)} WLC
+                            +{Number(presetCost).toFixed(2)} WLC
                           </div>
                         </button>
                       );
@@ -331,14 +331,14 @@ export function SessionExtensionModal({
                   <div className="flex items-center justify-between">
                     <span className="text-gray-400">연장 비용</span>
                     <span className="text-white font-medium font-mono">
-                      +{Number(extensionCost).toFixed(6)} WLC
+                      +{Number(extensionCost).toFixed(2)} WLC
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="text-gray-400">현재 잔액</span>
                     <span className="text-white font-medium font-mono">
-                      {currentBalance.toFixed(6)} WLC
+                      {currentBalance.toFixed(2)} WLC
                     </span>
                   </div>
 
@@ -353,7 +353,7 @@ export function SessionExtensionModal({
                             : 'text-green-400'
                       }`}
                     >
-                      {remainingBalance.toFixed(6)} WLC
+                      {remainingBalance.toFixed(2)} WLC
                     </span>
                   </div>
                 </div>

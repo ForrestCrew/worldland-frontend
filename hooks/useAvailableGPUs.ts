@@ -33,10 +33,14 @@ export interface AvailableGPU {
   vramGb: number;
   /** Price per second in wei string */
   pricePerSecond: string;
+  /** Price per hour in human-readable WLC (e.g., "1.50") */
+  pricePerHour: string;
   /** Geographic region */
   region: string;
   /** Availability status */
   status: 'available' | 'busy';
+  /** Provider type */
+  providerType?: 'docker' | 'k8s';
 }
 
 /**

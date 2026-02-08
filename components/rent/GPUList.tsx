@@ -10,7 +10,6 @@ import {
   type SortingState,
   type SortingFn,
 } from '@tanstack/react-table';
-import { formatEther } from 'viem';
 import type { AvailableGPU } from '@/hooks/useAvailableGPUs';
 
 /**
@@ -30,19 +29,13 @@ interface GPUListProps {
 const columnHelper = createColumnHelper<AvailableGPU>();
 
 /**
- * Custom sorting function for BigInt price comparison
- * TanStack Table doesn't natively handle BigInt sorting, so we provide a custom sortingFn
- * Remove decimal part since BigInt doesn't accept decimals
+ * Numeric sorting function for price comparison
+ * Compares human-readable pricePerHour values
  */
-const bigIntSortingFn: SortingFn<AvailableGPU> = (rowA, rowB) => {
-  const priceAStr = rowA.original.pricePerSecond.split('.')[0] || '0';
-  const priceBStr = rowB.original.pricePerSecond.split('.')[0] || '0';
-  const priceA = BigInt(priceAStr);
-  const priceB = BigInt(priceBStr);
-
-  if (priceA < priceB) return -1;
-  if (priceA > priceB) return 1;
-  return 0;
+const priceSortingFn: SortingFn<AvailableGPU> = (rowA, rowB) => {
+  const priceA = parseFloat(rowA.original.pricePerHour || '0');
+  const priceB = parseFloat(rowB.original.pricePerHour || '0');
+  return priceA - priceB;
 };
 
 /**
@@ -150,18 +143,15 @@ export function GPUList({
           </div>
         ),
       }),
-      columnHelper.accessor('pricePerSecond', {
+      columnHelper.accessor('pricePerHour', {
         id: 'price',
         header: '가격',
-        sortingFn: bigIntSortingFn,
+        sortingFn: priceSortingFn,
         cell: (info) => {
-          // Convert per-second to per-hour for display
-          const pricePerSec = BigInt(info.getValue());
-          const pricePerHour = pricePerSec * BigInt(3600);
-          const formatted = formatEther(pricePerHour);
+          const value = info.getValue();
           return (
             <div className="text-gray-300 font-mono">
-              {Number(formatted).toFixed(10)} WLT/hr
+              {Number(value || '0').toFixed(2)} WLC/hr
             </div>
           );
         },

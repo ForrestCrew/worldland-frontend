@@ -33,8 +33,6 @@ export interface StartRentalParams {
   provider: `0x${string}`;
   /** Price per second in wei */
   pricePerSecond: bigint;
-  /** SSH public key for container access */
-  sshPublicKey: string;
   /** Container image (preset ID) - optional, uses default if not provided */
   image?: string;
 }
@@ -103,7 +101,6 @@ function getAuthHeaders(): Record<string, string> {
  *   nodeId: 'node-123',
  *   provider: '0x1234...',
  *   pricePerSecond: parseUnits('0.001', 18),
- *   sshPublicKey: 'ssh-ed25519 AAAA...',
  * });
  */
 export function useStartRental(): UseStartRentalReturn {
@@ -198,12 +195,12 @@ export function useStartRental(): UseStartRentalReturn {
   /**
    * Step 4: Start rental and get SSH credentials
    */
-  const startRentalOnHub = async (sessionId: string, sshPublicKey: string): Promise<SSHCredentials> => {
+  const startRentalOnHub = async (sessionId: string): Promise<SSHCredentials> => {
     const response = await fetch(`${HUB_API_URL}/api/v1/rentals/${sessionId}/start`, {
       method: 'POST',
       credentials: 'include',
       headers: getAuthHeaders(),
-      body: JSON.stringify({ sshPublicKey }),
+      body: JSON.stringify({}),
     });
 
     // 202 means pod is still being provisioned - treat as retryable error
@@ -276,7 +273,7 @@ export function useStartRental(): UseStartRentalReturn {
         // without SSH credentials. User can see SSH info in the session list.
         try {
           const credentials = await retryWithBackoff(
-            () => startRentalOnHub(newSessionId, params.sshPublicKey),
+            () => startRentalOnHub(newSessionId),
             {
               maxRetries: 6,
               delayMs: 5000,

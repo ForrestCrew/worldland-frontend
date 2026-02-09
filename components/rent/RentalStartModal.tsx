@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { encodeFunctionData } from 'viem';
 import { useStartRental } from '@/hooks/useStartRental';
 import { useGasEstimate } from '@/hooks/useGasEstimate';
@@ -26,27 +26,6 @@ interface RentalStartModalProps {
   gpu: AvailableGPU | null;
 }
 
-/**
- * SSH public key validation
- * Validates common SSH key formats: ssh-rsa, ssh-ed25519, ecdsa-sha2-*
- */
-function isValidSSHPublicKey(key: string): boolean {
-  if (!key || key.trim().length === 0) return false;
-
-  const trimmed = key.trim();
-
-  // Check for common SSH key prefixes
-  const validPrefixes = [
-    'ssh-rsa',
-    'ssh-ed25519',
-    'ssh-dss',
-    'ecdsa-sha2-nistp256',
-    'ecdsa-sha2-nistp384',
-    'ecdsa-sha2-nistp521',
-  ];
-
-  return validPrefixes.some((prefix) => trimmed.startsWith(prefix));
-}
 
 /**
  * Stage indicator component
@@ -115,22 +94,20 @@ function StageIndicator({ stage }: { stage: RentalStage }) {
  * RentalStartModal - Modal for starting GPU rental with gas preview
  *
  * Features:
- * - SSH public key input with validation
  * - Gas estimate display (via useGasEstimate)
  * - 2-phase rental start flow (blockchain + Hub API)
  * - Transaction status display with 6-state feedback
  * - Stage indicator for 2-phase flow
- * - Auto-close on success after showing SSH credentials
+ * - SSH credentials displayed on success (password-based auth)
  * - Korean labels and error messages
  *
  * Flow:
- * 1. User enters SSH public key
- * 2. User reviews gas estimate
- * 3. User clicks "임대 시작"
- * 4. Blockchain transaction executes (wallet -> pending -> confirmed)
- * 5. Hub API called with retry (may take 15-30s during blockchain lag)
- * 6. SSH credentials displayed on success
- * 7. Modal auto-closes after user copies credentials
+ * 1. User selects container image and reviews gas estimate
+ * 2. User clicks "임대 시작"
+ * 3. Blockchain transaction executes (wallet -> pending -> confirmed)
+ * 4. Hub API called with retry (may take 15-30s during blockchain lag)
+ * 5. SSH credentials displayed on success
+ * 6. User copies credentials and closes modal
  *
  * @example
  * <RentalStartModal
@@ -144,8 +121,6 @@ export function RentalStartModal({
   onClose,
   gpu,
 }: RentalStartModalProps) {
-  const [sshPublicKey, setSSHPublicKey] = useState('');
-  const [sshError, setSSHError] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
@@ -186,34 +161,12 @@ export function RentalStartModal({
   const pricePerHourDisplay = gpu?.pricePerHour || '0.00';
 
   /**
-   * Handle SSH key input change
-   */
-  const handleSSHKeyChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setSSHPublicKey(value);
-
-    if (value && !isValidSSHPublicKey(value)) {
-      setSSHError('유효한 SSH 공개키를 입력해 주세요 (ssh-rsa, ssh-ed25519 등)');
-    } else {
-      setSSHError(null);
-    }
-  };
-
-  /**
    * Handle rental start
    */
   const handleStartRental = useCallback(async () => {
     if (!gpu) return;
 
-    // Validate provider address exists
     if (!gpu.providerAddress) {
-      setSSHError('Provider 주소를 찾을 수 없습니다. 다른 GPU를 선택해 주세요.');
-      return;
-    }
-
-    // Validate SSH key
-    if (!isValidSSHPublicKey(sshPublicKey)) {
-      setSSHError('SSH 공개키를 입력해 주세요');
       return;
     }
 
@@ -221,10 +174,9 @@ export function RentalStartModal({
       nodeId: gpu.nodeId,
       provider: gpu.providerAddress as `0x${string}`,
       pricePerSecond: BigInt(gpu.pricePerSecond.split('.')[0] || '0'),
-      sshPublicKey: sshPublicKey,
-      image: selectedImage || undefined, // Send preset image ID if selected
+      image: selectedImage || undefined,
     });
-  }, [gpu, sshPublicKey, selectedImage, startRental]);
+  }, [gpu, selectedImage, startRental]);
 
   /**
    * Handle modal close
@@ -236,8 +188,6 @@ export function RentalStartModal({
     }
 
     reset();
-    setSSHPublicKey('');
-    setSSHError(null);
     setCopiedField(null);
     setSelectedImage(null);
     onClose();
@@ -255,16 +205,6 @@ export function RentalStartModal({
       console.error('Failed to copy to clipboard');
     }
   }, []);
-
-  /**
-   * Auto-close on success after delay
-   */
-  useEffect(() => {
-    if (stage === 'complete' && sshCredentials) {
-      // Don't auto-close - let user copy credentials first
-      // User must close manually
-    }
-  }, [stage, sshCredentials]);
 
   // Button text based on stage
   const getButtonText = (): string => {
@@ -287,7 +227,7 @@ export function RentalStartModal({
   // Button disabled state
   const isButtonDisabled = (): boolean => {
     if (stage === 'idle' || stage === 'error') {
-      return !sshPublicKey || !!sshError;
+      return false;
     }
     return true;
   };
@@ -370,37 +310,6 @@ export function RentalStartModal({
                 onChange={setSelectedImage}
                 disabled={stage !== 'idle' && stage !== 'error'}
               />
-            )}
-
-            {/* SSH key input (hidden after rental starts) */}
-            {(stage === 'idle' || stage === 'error') && (
-              <div>
-                <label className="block text-sm text-gray-400 mb-2">
-                  SSH 공개키 <span className="text-red-400">*</span>
-                </label>
-                <textarea
-                  value={sshPublicKey}
-                  onChange={handleSSHKeyChange}
-                  placeholder="ssh-rsa AAAAB3... 또는 ssh-ed25519 AAAAC3..."
-                  rows={3}
-                  className={`
-                    w-full bg-gray-800 border rounded-lg
-                    p-3 text-white font-mono text-sm
-                    placeholder:text-gray-500
-                    focus:outline-none resize-none
-                    ${sshError
-                      ? 'border-red-500 focus:border-red-500'
-                      : 'border-gray-700 focus:border-purple-500'
-                    }
-                  `}
-                />
-                {sshError && (
-                  <p className="text-sm text-red-400 mt-1">{sshError}</p>
-                )}
-                <p className="text-xs text-gray-500 mt-2">
-                  이 공개키로 GPU 인스턴스에 SSH 접속합니다.
-                </p>
-              </div>
             )}
 
             {/* Gas estimate */}

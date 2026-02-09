@@ -30,6 +30,7 @@ function toCardSession(session: RentalSession): CardSession {
     started_at: session.startTime || new Date().toISOString(),
     created_at: session.createdAt, // For TTL countdown
     price_per_sec: session.pricePerSecond,
+    price_per_hour: session.pricePerHour, // Human-readable WLC/hr from API
     tx_hash: session.txHash, // For display and retry
     ssh_credentials: session.sshHost
       ? {

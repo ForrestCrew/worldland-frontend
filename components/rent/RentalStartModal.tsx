@@ -421,6 +421,24 @@ export function RentalStartModal({
               />
             )}
 
+            {/* Container provisioning notice (complete but SSH not ready yet) */}
+            {stage === 'complete' && !sshCredentials && (
+              <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 space-y-3">
+                <div className="flex items-center gap-2 text-blue-400">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="font-medium">임대가 시작되었습니다!</span>
+                </div>
+                <p className="text-sm text-gray-300">
+                  컨테이너 이미지를 다운로드하고 있습니다. 대용량 이미지(PyTorch, CUDA 등)는 수 분이 소요될 수 있습니다.
+                </p>
+                <p className="text-sm text-gray-400">
+                  SSH 접속 정보는 <span className="text-purple-400 font-medium">활성 임대</span> 목록에서 확인하세요.
+                </p>
+              </div>
+            )}
+
             {/* SSH credentials (shown on success) */}
             {stage === 'complete' && sshCredentials && (
               <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-4 space-y-4">

@@ -270,18 +270,25 @@ export function useStartRental(): UseStartRentalReturn {
           }
         );
 
-        // Step 4: Start rental and get SSH credentials
-        // Large images (CUDA) can take 1-2 minutes to pull, so retry longer
-        const credentials = await retryWithBackoff(
-          () => startRentalOnHub(newSessionId, params.sshPublicKey),
-          {
-            maxRetries: 20,
-            delayMs: 5000,
-            shouldRetry: isRetryableHubError,
-          }
-        );
+        // Step 4: Try to get SSH credentials (non-blocking)
+        // Large images (pytorch, CUDA) can take 3-5 minutes to pull.
+        // Try with short timeout — if container isn't ready yet, show success
+        // without SSH credentials. User can see SSH info in the session list.
+        try {
+          const credentials = await retryWithBackoff(
+            () => startRentalOnHub(newSessionId, params.sshPublicKey),
+            {
+              maxRetries: 6,
+              delayMs: 5000,
+              shouldRetry: isRetryableHubError,
+            }
+          );
+          setSshCredentials(credentials);
+        } catch {
+          // Container still provisioning — SSH info will appear in session list
+          console.log('[useStartRental] Container still provisioning, SSH will be available in session list');
+        }
 
-        setSshCredentials(credentials);
         setStage('complete');
 
         // Invalidate relevant queries
@@ -289,7 +296,7 @@ export function useStartRental(): UseStartRentalReturn {
         queryClient.invalidateQueries({ queryKey: ['balance', address] });
         queryClient.invalidateQueries({ queryKey: ['availableGPUs'] });
 
-        return credentials;
+        return null;
       } catch (error) {
         setStage('error');
         if (!(writeError || confirmError)) {

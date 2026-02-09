@@ -49,7 +49,7 @@ export default function ProviderDashboardPage() {
       const storedAuth = localStorage.getItem('worldland_auth');
       if (storedAuth) {
         const parsed = JSON.parse(storedAuth);
-        setProviderId(parsed.provider_id);
+        setProviderId(parsed.providerId || parsed.provider_id);
       }
     } catch {
       // ignore

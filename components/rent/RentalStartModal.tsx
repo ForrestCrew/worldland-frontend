@@ -479,12 +479,12 @@ export function RentalStartModal({
                     <div>
                       <div className="text-gray-400 text-xs">SSH 명령어</div>
                       <div className="text-white break-all">
-                        ssh {sshCredentials.sshUser}@{sshCredentials.sshHost} -p {sshCredentials.sshPort}
+                        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null {sshCredentials.sshUser}@{sshCredentials.sshHost} -p {sshCredentials.sshPort}
                       </div>
                     </div>
                     <button
                       onClick={() => copyToClipboard(
-                        `ssh ${sshCredentials.sshUser}@${sshCredentials.sshHost} -p ${sshCredentials.sshPort}`,
+                        `ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null ${sshCredentials.sshUser}@${sshCredentials.sshHost} -p ${sshCredentials.sshPort}`,
                         'command'
                       )}
                       className="text-purple-400 hover:text-purple-300 whitespace-nowrap ml-2"

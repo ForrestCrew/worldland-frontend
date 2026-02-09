@@ -94,8 +94,8 @@ export function SSHCredentials({
   const [isVisible, setIsVisible] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
 
-  // Construct SSH command
-  const sshCommand = `ssh -p ${credentials.port} ${credentials.username}@${credentials.host}`;
+  // Construct SSH command (skip host key check for ephemeral rental containers)
+  const sshCommand = `ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${credentials.port} ${credentials.username}@${credentials.host}`;
 
   // Handle reveal button click
   const handleReveal = useCallback(() => {

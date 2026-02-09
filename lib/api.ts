@@ -194,9 +194,19 @@ export interface GPUAllocation {
   available: number;
 }
 
+export interface SDKNodeMiningStatus {
+  nodeId: string;
+  state: 'running' | 'stopped' | 'paused';
+  containerId?: string;
+  gpuCount: number;
+  startedAt?: string;
+  lastSeen?: string;
+}
+
 export interface MiningStatusResponse {
-  mining: MiningStatus;
-  allocation: GPUAllocation;
+  mining?: MiningStatus;
+  allocation?: GPUAllocation;
+  sdkNodes?: SDKNodeMiningStatus[];
 }
 
 export interface GPUAllocationResponse {

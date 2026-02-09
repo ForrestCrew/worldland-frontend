@@ -15,6 +15,7 @@ function ProviderNav() {
   const tabs = [
     { href: '/provider', label: '대시보드', exact: true },
     { href: '/provider/nodes', label: '내 노드', exact: false },
+    { href: '/provider/mining', label: '채굴 관리', exact: false },
     { href: '/provider/earnings', label: '수익', exact: false },
   ];
 

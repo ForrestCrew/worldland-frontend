@@ -35,7 +35,7 @@ export interface StartRentalParams {
   pricePerSecond: bigint;
   /** SSH public key for container access */
   sshPublicKey: string;
-  /** Container image (preset ID or custom Docker URL) - optional, uses default if not provided */
+  /** Container image (preset ID) - optional, uses default if not provided */
   image?: string;
 }
 

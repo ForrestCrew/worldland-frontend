@@ -222,7 +222,7 @@ export function RentalStartModal({
       provider: gpu.providerAddress as `0x${string}`,
       pricePerSecond: BigInt(gpu.pricePerSecond.split('.')[0] || '0'),
       sshPublicKey: sshPublicKey,
-      image: selectedImage || undefined, // Send image if selected (preset ID or custom URL)
+      image: selectedImage || undefined, // Send preset image ID if selected
     });
   }, [gpu, sshPublicKey, selectedImage, startRental]);
 

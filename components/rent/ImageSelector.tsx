@@ -1,6 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useImages, groupImagesByCategory, categoryDisplayNames } from '@/hooks/useImages';
 import type { BaseImage, ImageCategory } from '@/lib/api';
 
@@ -8,7 +7,7 @@ import type { BaseImage, ImageCategory } from '@/lib/api';
  * Props for ImageSelector component
  */
 interface ImageSelectorProps {
-  /** Currently selected value (preset ID or custom URL) */
+  /** Currently selected value (preset ID) */
   value: string | null;
   /** Callback when selection changes */
   onChange: (value: string | null) => void;
@@ -21,36 +20,14 @@ interface ImageSelectorProps {
  *
  * Features:
  * - Displays preset images grouped by category (PyTorch, TensorFlow, CUDA)
- * - Toggle for custom Docker image URL input
+ * - Only preset images allowed (no custom URLs for security)
  * - Selection highlight for active preset
  * - Loading and error states
- * - TailwindCSS styling matching existing components
  *
  * Used in RentalStartModal to let users choose container image before starting rental.
- *
- * @example
- * <ImageSelector
- *   value={selectedImage}
- *   onChange={setSelectedImage}
- *   disabled={isCreating}
- * />
  */
 export function ImageSelector({ value, onChange, disabled }: ImageSelectorProps) {
   const { data: images, isLoading, error } = useImages();
-  const [isCustom, setIsCustom] = useState(false);
-  const [customUrl, setCustomUrl] = useState('');
-
-  // Sync custom URL state when value changes externally
-  useEffect(() => {
-    if (value && images) {
-      // Check if value is a preset ID
-      const isPreset = images.some((img) => img.id === value);
-      if (!isPreset && value !== customUrl) {
-        setIsCustom(true);
-        setCustomUrl(value);
-      }
-    }
-  }, [value, images, customUrl]);
 
   const groupedImages = images ? groupImagesByCategory(images) : null;
 
@@ -58,25 +35,7 @@ export function ImageSelector({ value, onChange, disabled }: ImageSelectorProps)
    * Handle preset image selection
    */
   const handlePresetSelect = (imageId: string) => {
-    setIsCustom(false);
-    setCustomUrl('');
     onChange(imageId);
-  };
-
-  /**
-   * Handle custom image toggle
-   */
-  const handleCustomToggle = () => {
-    setIsCustom(true);
-    onChange(customUrl || null);
-  };
-
-  /**
-   * Handle custom URL input change
-   */
-  const handleCustomChange = (url: string) => {
-    setCustomUrl(url);
-    onChange(url || null);
   };
 
   // Loading state
@@ -90,7 +49,7 @@ export function ImageSelector({ value, onChange, disabled }: ImageSelectorProps)
     );
   }
 
-  // Error state - still allow custom URL
+  // Error state
   if (error) {
     return (
       <div className="space-y-4">
@@ -99,26 +58,7 @@ export function ImageSelector({ value, onChange, disabled }: ImageSelectorProps)
         </label>
         <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
           <p className="text-sm text-yellow-400">
-            프리셋 이미지를 불러올 수 없습니다. 커스텀 이미지 URL을 입력해 주세요.
-          </p>
-        </div>
-        <div>
-          <input
-            type="text"
-            placeholder="예: pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime"
-            value={customUrl}
-            onChange={(e) => handleCustomChange(e.target.value)}
-            disabled={disabled}
-            className={`
-              w-full bg-gray-800 border border-gray-700 rounded-lg
-              p-3 text-white font-mono text-sm
-              placeholder:text-gray-500
-              focus:outline-none focus:border-purple-500
-              ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-            `}
-          />
-          <p className="mt-1 text-xs text-gray-500">
-            공개 레지스트리의 유효한 Docker 이미지 참조를 입력하세요
+            프리셋 이미지를 불러올 수 없습니다. 기본 이미지가 사용됩니다.
           </p>
         </div>
       </div>
@@ -134,15 +74,9 @@ export function ImageSelector({ value, onChange, disabled }: ImageSelectorProps)
         </label>
         <div className="p-3 bg-gray-800/50 rounded-lg">
           <p className="text-sm text-gray-400">
-            등록된 프리셋 이미지가 없습니다. 커스텀 이미지 URL을 입력해 주세요.
+            등록된 프리셋 이미지가 없습니다. 기본 이미지가 사용됩니다.
           </p>
         </div>
-        <CustomImageInput
-          value={customUrl}
-          onChange={handleCustomChange}
-          disabled={disabled}
-          isActive={true}
-        />
       </div>
     );
   }
@@ -171,7 +105,7 @@ export function ImageSelector({ value, onChange, disabled }: ImageSelectorProps)
                 <ImagePresetButton
                   key={img.id}
                   image={img}
-                  isSelected={value === img.id && !isCustom}
+                  isSelected={value === img.id}
                   disabled={disabled}
                   onClick={() => handlePresetSelect(img.id)}
                 />
@@ -180,37 +114,6 @@ export function ImageSelector({ value, onChange, disabled }: ImageSelectorProps)
           </div>
         );
       })}
-
-      {/* Custom image option */}
-      <div className="pt-3 border-t border-gray-800">
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={handleCustomToggle}
-          className={`
-            w-full p-3 text-left border rounded-lg transition-colors
-            ${isCustom
-              ? 'border-purple-500 bg-purple-500/10'
-              : 'border-gray-700 hover:border-gray-600'
-            }
-            ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
-          `}
-        >
-          <div className="font-medium text-sm text-white">커스텀 이미지</div>
-          <div className="text-xs text-gray-400 mt-1">
-            직접 Docker 이미지 URL을 입력합니다
-          </div>
-        </button>
-
-        {isCustom && (
-          <CustomImageInput
-            value={customUrl}
-            onChange={handleCustomChange}
-            disabled={disabled}
-            isActive={true}
-          />
-        )}
-      </div>
     </div>
   );
 }
@@ -257,42 +160,6 @@ function ImagePresetButton({ image, isSelected, disabled, onClick }: ImagePreset
         </div>
       )}
     </button>
-  );
-}
-
-/**
- * Custom image URL input component
- */
-interface CustomImageInputProps {
-  value: string;
-  onChange: (value: string) => void;
-  disabled?: boolean;
-  isActive: boolean;
-}
-
-function CustomImageInput({ value, onChange, disabled, isActive }: CustomImageInputProps) {
-  if (!isActive) return null;
-
-  return (
-    <div className="mt-3">
-      <input
-        type="text"
-        placeholder="예: pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-        className={`
-          w-full bg-gray-800 border border-gray-700 rounded-lg
-          p-3 text-white font-mono text-sm
-          placeholder:text-gray-500
-          focus:outline-none focus:border-purple-500
-          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-        `}
-      />
-      <p className="mt-1 text-xs text-gray-500">
-        공개 레지스트리의 유효한 Docker 이미지 참조를 입력하세요
-      </p>
-    </div>
   );
 }
 

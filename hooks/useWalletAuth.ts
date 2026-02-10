@@ -67,12 +67,12 @@ export function useWalletAuth(): UseWalletAuthReturn {
 
       // Check connection
       if (!isConnected) {
-        throw new Error('지갑을 먼저 연결해주세요');
+        throw new Error('Please connect your wallet first');
       }
 
       // Check network
       if (isWrongNetwork) {
-        throw new Error('올바른 네트워크로 전환해주세요');
+        throw new Error('Please switch to the correct network');
       }
 
       // Check authentication
@@ -81,10 +81,10 @@ export function useWalletAuth(): UseWalletAuthReturn {
           // Per CONTEXT.md: prompt on first protected action
           const success = await requestSignature(requiredRole);
           if (!success) {
-            throw new Error('인증이 필요합니다');
+            throw new Error('Authentication required');
           }
         } else {
-          throw new Error('인증이 필요합니다');
+          throw new Error('Authentication required');
         }
       }
 

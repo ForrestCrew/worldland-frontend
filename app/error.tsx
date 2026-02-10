@@ -37,15 +37,15 @@ export default function Error({
         </div>
 
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          앗! 문제가 발생했습니다
+          Oops! Something went wrong
         </h2>
 
         <p className="text-gray-600 mb-6">
-          예기치 않은 오류가 발생했습니다.
+          An unexpected error occurred.
           <br />
-          걱정하지 마세요, 데이터는 안전합니다.
+          Don&apos;t worry, your data is safe.
           <br />
-          페이지를 새로고침하거나 홈으로 돌아가 주세요.
+          Please refresh the page or go back to the homepage.
         </p>
 
         <div className="flex gap-3 justify-center">
@@ -53,19 +53,19 @@ export default function Error({
             onClick={reset}
             className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
           >
-            다시 시도
+            Try Again
           </button>
           <a
             href="/"
             className="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-md hover:bg-gray-50 transition-colors"
           >
-            홈으로 돌아가기
+            Go Home
           </a>
         </div>
 
         {error.digest && (
           <p className="mt-6 text-xs text-gray-400">
-            오류 ID: {error.digest}
+            Error ID: {error.digest}
           </p>
         )}
       </div>

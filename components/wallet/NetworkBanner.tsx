@@ -34,7 +34,7 @@ export function NetworkBanner() {
   // Get current network name (if known)
   const currentNetworkName = currentChainId
     ? getNetworkName(currentChainId)
-    : '알 수 없는 네트워크';
+    : 'Unknown Network';
 
   return (
     <div className="sticky top-0 z-50 bg-orange-500 text-white px-4 py-2">
@@ -55,10 +55,10 @@ export function NetworkBanner() {
             />
           </svg>
           <span className="text-sm sm:text-base">
-            <span className="font-medium">잘못된 네트워크:</span>{' '}
-            현재 {currentNetworkName}에 연결되어 있습니다.{' '}
+            <span className="font-medium">Wrong Network:</span>{' '}
+            Currently connected to {currentNetworkName}.{' '}
             <span className="hidden sm:inline">
-              {expectedNetworkName}으로 전환해주세요. 쓰기 작업이 차단됩니다.
+              Please switch to {expectedNetworkName}. Write operations are blocked.
             </span>
           </span>
         </div>
@@ -67,7 +67,7 @@ export function NetworkBanner() {
           disabled={isSwitching}
           className="ml-4 px-4 py-1 bg-white text-orange-600 rounded font-medium text-sm hover:bg-orange-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
         >
-          {isSwitching ? '전환 중...' : '네트워크 전환'}
+          {isSwitching ? 'Switching...' : 'Switch Network'}
         </button>
       </div>
     </div>

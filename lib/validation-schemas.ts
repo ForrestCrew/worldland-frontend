@@ -7,7 +7,6 @@ import { isAddress } from 'viem'
  * Per CONTEXT.md decisions:
  * - Trigger: on blur (when user leaves the field)
  * - Wallet address: format check + checksum validation (via viem's isAddress)
- * - All error messages in Korean for consistency with error-messages.ts
  */
 
 /**
@@ -18,14 +17,14 @@ import { isAddress } from 'viem'
  */
 export const walletAddressSchema = z
   .string()
-  .min(1, '지갑 주소를 입력해주세요')
+  .min(1, 'Please enter a wallet address')
   .regex(
     /^0x[a-fA-F0-9]{40}$/,
-    '유효하지 않은 주소 형식입니다. 0x로 시작하는 42자리 주소를 입력해주세요'
+    'Invalid address format. Enter a 42-character address starting with 0x'
   )
   .refine(
     (addr) => isAddress(addr),
-    '유효하지 않은 체크섬입니다. 주소를 다시 복사해주세요'
+    'Invalid checksum. Please copy the address again'
   )
 
 /**
@@ -36,10 +35,10 @@ export const walletAddressSchema = z
  */
 export const amountSchema = z
   .string()
-  .min(1, '금액을 입력해주세요')
+  .min(1, 'Please enter an amount')
   .refine(
     (val) => !isNaN(Number(val)) && Number(val) > 0,
-    '0보다 큰 금액을 입력해주세요'
+    'Amount must be greater than 0'
   )
 
 /**
@@ -49,14 +48,14 @@ export const amountSchema = z
 export const createAmountSchema = (maxAmount: number, maxMessage?: string) =>
   z
     .string()
-    .min(1, '금액을 입력해주세요')
+    .min(1, 'Please enter an amount')
     .refine(
       (val) => !isNaN(Number(val)) && Number(val) > 0,
-      '0보다 큰 금액을 입력해주세요'
+      'Amount must be greater than 0'
     )
     .refine(
       (val) => Number(val) <= maxAmount,
-      maxMessage || `최대 ${maxAmount}까지 입력 가능합니다`
+      maxMessage || `Maximum amount is ${maxAmount}`
     )
 
 /**
@@ -83,10 +82,10 @@ export const transferFormSchema = z.object({
 export const pricingFormSchema = z.object({
   pricePerSecond: z
     .string()
-    .min(1, '가격을 입력해주세요')
+    .min(1, 'Please enter a price')
     .refine(
       (val) => !isNaN(Number(val)) && Number(val) >= 0,
-      '0 이상의 가격을 입력해주세요'
+      'Price must be 0 or greater'
     ),
 })
 

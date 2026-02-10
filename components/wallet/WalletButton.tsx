@@ -58,7 +58,7 @@ export function WalletButton({ className, showBalance = false }: WalletButtonPro
                       type="button"
                       className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
                     >
-                      지갑 연결
+                      Connect Wallet
                     </button>
                   );
                 }
@@ -71,7 +71,7 @@ export function WalletButton({ className, showBalance = false }: WalletButtonPro
                       type="button"
                       className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-medium transition-colors"
                     >
-                      네트워크 전환
+                      Switch Network
                     </button>
                   );
                 }

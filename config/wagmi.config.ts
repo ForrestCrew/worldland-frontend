@@ -39,11 +39,11 @@ export const wagmiConfig = getDefaultConfig({
   // Per CONTEXT.md: "Wallet modal shows MetaMask as recommended first, other wallets below"
   wallets: [
     {
-      groupName: '추천',  // Korean: "Recommended"
+      groupName: 'Recommended',
       wallets: [metaMaskWallet],
     },
     {
-      groupName: '기타 지갑',  // Korean: "Other Wallets"
+      groupName: 'Other Wallets',
       wallets: [walletConnectWallet, coinbaseWallet],
     },
   ],

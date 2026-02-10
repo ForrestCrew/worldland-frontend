@@ -135,7 +135,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (!isConnected || !address || !chainId) {
         setState((prev) => ({
           ...prev,
-          error: '지갑을 먼저 연결해주세요',
+          error: 'Please connect your wallet first',
         }));
         return false;
       }
@@ -155,8 +155,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Per CONTEXT.md: "Different SIWE messages for providers vs users"
         const statement =
           role === 'provider'
-            ? 'Worldland Provider로 로그인합니다. GPU 노드를 등록하고 임대를 관리할 수 있습니다.'
-            : 'Worldland User로 로그인합니다. GPU 자원을 임대하고 사용할 수 있습니다.';
+            ? 'Sign in as Worldland Provider. Register GPU nodes and manage rentals.'
+            : 'Sign in as Worldland User. Rent and use GPU resources.';
 
         const message = createSiweMessage({
           domain: window.location.host,
@@ -206,7 +206,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // Per CONTEXT.md: "User rejection: Toast message, stay on page"
         // Per CONTEXT.md: "Signature failure does NOT disconnect wallet"
-        let errorMessage = '인증에 실패했습니다. 다시 시도해주세요.';
+        let errorMessage = 'Authentication failed. Please try again.';
 
         if (err instanceof Error) {
           // User rejected signature (error code 4001 for most wallets)
@@ -215,7 +215,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             err.message.includes('denied') ||
             err.message.includes('User rejected')
           ) {
-            errorMessage = '서명이 취소됐어요.';
+            errorMessage = 'Signature was cancelled.';
           } else if (err instanceof ApiError) {
             errorMessage = err.message;
           }

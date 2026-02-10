@@ -40,7 +40,7 @@ export function useErrorModal() {
 
   const showError = useCallback((
     error: unknown,
-    title: string = '오류가 발생했습니다',
+    title: string = 'An error occurred',
     onRetry?: () => void
   ) => {
     const message = getErrorMessage(error)

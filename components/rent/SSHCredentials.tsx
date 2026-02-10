@@ -59,7 +59,7 @@ function CopyButton({
         }
       `}
     >
-      {copied ? '복사됨' : label}
+      {copied ? 'Copied' : label}
     </button>
   );
 }
@@ -147,20 +147,20 @@ export function SSHCredentials({
               d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
             />
           </svg>
-          SSH 접속 정보
+          SSH Credentials
         </h4>
 
         {isVisible ? (
           <div className="flex items-center gap-2">
             {/* Countdown timer */}
             <span className="text-sm text-gray-400">
-              {timeLeft}초 후 숨김
+              Hides in {timeLeft}s
             </span>
             <button
               onClick={handleHide}
               className="px-3 py-1 rounded text-sm font-medium bg-gray-700 hover:bg-gray-600 text-gray-300 transition-colors"
             >
-              숨기기
+              Hide
             </button>
           </div>
         ) : (
@@ -168,7 +168,7 @@ export function SSHCredentials({
             onClick={handleReveal}
             className="px-3 py-1 rounded text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white transition-colors"
           >
-            보기
+            Show
           </button>
         )}
       </div>
@@ -178,38 +178,38 @@ export function SSHCredentials({
         <div className="space-y-3">
           {/* SSH Command */}
           <div>
-            <div className="text-sm text-gray-400 mb-1">SSH 명령어</div>
+            <div className="text-sm text-gray-400 mb-1">SSH Command</div>
             <div className="flex items-center gap-2 bg-gray-900 rounded p-2">
               <code className="flex-1 text-sm text-green-400 font-mono break-all">
                 {sshCommand}
               </code>
-              <CopyButton text={sshCommand} label="복사" />
+              <CopyButton text={sshCommand} label="Copy" />
             </div>
           </div>
 
           {/* Password */}
           <div>
-            <div className="text-sm text-gray-400 mb-1">비밀번호</div>
+            <div className="text-sm text-gray-400 mb-1">Password</div>
             <div className="flex items-center gap-2 bg-gray-900 rounded p-2">
               <code className="flex-1 text-sm text-yellow-400 font-mono">
                 {credentials.password}
               </code>
-              <CopyButton text={credentials.password} label="복사" />
+              <CopyButton text={credentials.password} label="Copy" />
             </div>
           </div>
 
           {/* Connection details */}
           <div className="grid grid-cols-3 gap-2 text-sm">
             <div>
-              <div className="text-gray-500">호스트</div>
+              <div className="text-gray-500">Host</div>
               <div className="text-gray-300 font-mono">{credentials.host}</div>
             </div>
             <div>
-              <div className="text-gray-500">포트</div>
+              <div className="text-gray-500">Port</div>
               <div className="text-gray-300 font-mono">{credentials.port}</div>
             </div>
             <div>
-              <div className="text-gray-500">사용자</div>
+              <div className="text-gray-500">User</div>
               <div className="text-gray-300 font-mono">{credentials.username}</div>
             </div>
           </div>
@@ -230,8 +230,8 @@ export function SSHCredentials({
               />
             </svg>
             <span>
-              보안을 위해 접속 정보는 {timeLeft}초 후 자동으로 숨겨집니다.
-              비밀번호를 안전한 곳에 보관하세요.
+              Credentials will auto-hide in {timeLeft}s for security.
+              Save your password in a safe place.
             </span>
           </div>
         </div>
@@ -251,7 +251,7 @@ export function SSHCredentials({
             />
           </svg>
           <p className="text-sm">
-            접속 정보를 보려면 &quot;보기&quot; 버튼을 클릭하세요
+            Click &quot;Show&quot; to reveal credentials
           </p>
         </div>
       )}

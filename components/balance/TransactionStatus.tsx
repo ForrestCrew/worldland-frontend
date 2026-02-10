@@ -245,7 +245,7 @@ export function TransactionStatus({
               rel="noopener noreferrer"
               className="text-blue-400 hover:text-blue-300 hover:underline flex items-center gap-1"
             >
-              BscScan에서 보기
+              View on BscScan
               <svg
                 className="w-3 h-3"
                 fill="none"

@@ -1,7 +1,6 @@
 'use client';
 
 import { formatDistanceToNow } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import { useTransactionHistory, type Transaction } from '@/hooks/useTransactionHistory';
 import { getExplorerTxUrl } from '@/lib/explorer';
 import { useChainId } from 'wagmi';
@@ -60,7 +59,7 @@ function EmptyState() {
           d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
         />
       </svg>
-      <p className="text-sm">거래 내역이 없습니다</p>
+      <p className="text-sm">No transaction history</p>
     </div>
   );
 }
@@ -82,9 +81,8 @@ function TransactionRow({
   const timeAgo = transaction.timestamp
     ? formatDistanceToNow(transaction.timestamp, {
         addSuffix: true,
-        locale: ko,
       })
-    : '시간 미확인';
+    : 'Unknown time';
 
   return (
     <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-gray-800/70 transition-colors">
@@ -134,7 +132,7 @@ function TransactionRow({
               isDeposit ? 'text-green-400' : 'text-red-400'
             }`}
           >
-            {isDeposit ? '입금' : '출금'}
+            {isDeposit ? 'Deposit' : 'Withdraw'}
           </div>
           <div className="text-xs text-gray-500">{timeAgo}</div>
         </div>
@@ -156,7 +154,7 @@ function TransactionRow({
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-1 text-blue-400 hover:text-blue-300 hover:underline text-sm"
-        title="BscScan에서 보기"
+        title="View on BscScan"
       >
         <span className="hidden sm:inline">BscScan</span>
         <svg
@@ -215,7 +213,7 @@ export function TransactionHistory({
   if (loading) {
     return (
       <div className={className}>
-        <h3 className="text-lg font-semibold text-white mb-4">거래 내역</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">Transaction History</h3>
         <TransactionSkeleton />
       </div>
     );
@@ -224,9 +222,9 @@ export function TransactionHistory({
   if (error) {
     return (
       <div className={className}>
-        <h3 className="text-lg font-semibold text-white mb-4">거래 내역</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">Transaction History</h3>
         <div className="p-4 bg-red-900/20 rounded-lg text-red-400 text-sm">
-          거래 내역을 불러오는데 실패했습니다
+          Failed to load transaction history
         </div>
       </div>
     );
@@ -234,7 +232,7 @@ export function TransactionHistory({
 
   return (
     <div className={className}>
-      <h3 className="text-lg font-semibold text-white mb-4">거래 내역</h3>
+      <h3 className="text-lg font-semibold text-white mb-4">Transaction History</h3>
 
       {displayedTransactions.length === 0 ? (
         <EmptyState />

@@ -42,10 +42,10 @@ interface DurationPreset {
  * Duration presets for quick selection
  */
 const DURATION_PRESETS: DurationPreset[] = [
-  { label: '1시간', minutes: 60 },
-  { label: '2시간', minutes: 120 },
-  { label: '4시간', minutes: 240 },
-  { label: '8시간', minutes: 480 },
+  { label: '1 Hour', minutes: 60 },
+  { label: '2 Hours', minutes: 120 },
+  { label: '4 Hours', minutes: 240 },
+  { label: '8 Hours', minutes: 480 },
 ];
 
 /**
@@ -175,11 +175,11 @@ export function SessionExtensionModal({
    * Format expiration time for display
    */
   const formatExpiration = (isoString?: string): string => {
-    if (!isoString) return '만료 시간 없음';
+    if (!isoString) return 'No expiration set';
 
     try {
       const date = new Date(isoString);
-      return date.toLocaleString('ko-KR', {
+      return date.toLocaleString('en-US', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
@@ -187,7 +187,7 @@ export function SessionExtensionModal({
         minute: '2-digit',
       });
     } catch {
-      return '만료 시간 없음';
+      return 'No expiration set';
     }
   };
 
@@ -229,7 +229,7 @@ export function SessionExtensionModal({
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                   <Dialog.Title className="text-xl font-bold text-white">
-                    세션 연장
+                    Extend Session
                   </Dialog.Title>
                   <button
                     onClick={onClose}
@@ -254,7 +254,7 @@ export function SessionExtensionModal({
 
                 {/* Current expiration */}
                 <div className="mb-6 p-4 bg-gray-800/50 rounded-lg">
-                  <div className="text-sm text-gray-400 mb-1">현재 만료 시간</div>
+                  <div className="text-sm text-gray-400 mb-1">Current Expiration</div>
                   <div className="text-white font-medium">
                     {formatExpiration(extendedUntil)}
                   </div>
@@ -263,7 +263,7 @@ export function SessionExtensionModal({
                 {/* Duration picker */}
                 <div className="mb-6">
                   <label className="block text-sm text-gray-400 mb-3">
-                    연장 시간 선택
+                    Select Duration
                   </label>
 
                   {/* Preset buttons */}
@@ -300,7 +300,7 @@ export function SessionExtensionModal({
                   {/* Custom input */}
                   <div>
                     <label className="block text-xs text-gray-500 mb-2">
-                      커스텀 시간 (최소 30분)
+                      Custom Duration (min 30 minutes)
                     </label>
                     <div className="relative">
                       <input
@@ -308,7 +308,7 @@ export function SessionExtensionModal({
                         min={30}
                         value={customMinutes}
                         onChange={handleCustomInputChange}
-                        placeholder="최소 30분"
+                        placeholder="Min 30 min"
                         className={`
                           w-full bg-gray-800 border rounded-lg px-4 py-3 pr-12
                           text-white placeholder:text-gray-500
@@ -320,7 +320,7 @@ export function SessionExtensionModal({
                         `}
                       />
                       <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-                        분
+                        min
                       </span>
                     </div>
                   </div>
@@ -329,21 +329,21 @@ export function SessionExtensionModal({
                 {/* Cost summary */}
                 <div className="mb-6 p-4 bg-gray-800 rounded-lg space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-400">연장 비용</span>
+                    <span className="text-gray-400">Extension Cost</span>
                     <span className="text-white font-medium font-mono">
                       +{Number(extensionCost).toFixed(2)} WLC
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-gray-400">현재 잔액</span>
+                    <span className="text-gray-400">Current Balance</span>
                     <span className="text-white font-medium font-mono">
                       {currentBalance.toFixed(2)} WLC
                     </span>
                   </div>
 
                   <div className="pt-3 border-t border-gray-700 flex items-center justify-between">
-                    <span className="text-gray-300 font-medium">연장 후 잔액</span>
+                    <span className="text-gray-300 font-medium">Balance After</span>
                     <span
                       className={`font-medium font-mono ${
                         remainingBalance < 0
@@ -376,7 +376,7 @@ export function SessionExtensionModal({
                         />
                       </svg>
                       <span>
-                        연장 후 잔액이 1시간 미만 사용량입니다. 추가 입금을 권장합니다.
+                        Remaining balance is less than 1 hour of runtime. Consider depositing more.
                       </span>
                     </div>
                   </div>
@@ -399,7 +399,7 @@ export function SessionExtensionModal({
                           d="M6 18L18 6M6 6l12 12"
                         />
                       </svg>
-                      <span>잔액이 부족합니다. 입금 후 다시 시도해 주세요.</span>
+                      <span>Insufficient balance. Please deposit more and try again.</span>
                     </div>
                   </div>
                 )}
@@ -411,7 +411,7 @@ export function SessionExtensionModal({
                     disabled={extendSession.isPending}
                     className="flex-1 px-4 py-3 rounded-lg text-white font-medium bg-gray-700 hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    취소
+                    Cancel
                   </button>
                   <button
                     onClick={handleConfirm}
@@ -439,10 +439,10 @@ export function SessionExtensionModal({
                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
                           />
                         </svg>
-                        연장 중...
+                        Extending...
                       </span>
                     ) : (
-                      '연장하기'
+                      'Extend'
                     )}
                   </button>
                 </div>

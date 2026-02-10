@@ -45,7 +45,7 @@ export function useSessionTimer(extendedUntil: string | null): SessionTimerResul
   if (!extendedUntil) {
     return {
       timeRemaining: 0,
-      formattedTime: '만료 시간 없음',
+      formattedTime: 'No expiration',
       urgency: 'safe',
       isExpiringSoon: false,
       isExpired: true,
@@ -68,7 +68,7 @@ export function useSessionTimer(extendedUntil: string | null): SessionTimerResul
   // Format time display
   let formattedTime: string;
   if (isExpired) {
-    formattedTime = '만료됨';
+    formattedTime = 'Expired';
   } else if (totalMinutes >= 60) {
     // More than 1 hour: "Xh Ym remaining"
     const hours = Math.floor(totalMinutes / 60);

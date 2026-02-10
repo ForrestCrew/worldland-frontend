@@ -122,7 +122,7 @@ export function isRetryableHubError(error: Error): boolean {
   }
 
   // Explicit retry indicator from Hub
-  if (message.includes('retry') || message.includes('not ready') || message.includes('준비 중') || message.includes('pending')) {
+  if (message.includes('retry') || message.includes('not ready') || message.includes('provisioned') || message.includes('pending')) {
     return true;
   }
 
@@ -144,11 +144,11 @@ export function isRetryableHubError(error: Error): boolean {
  * Stage-specific status messages (Korean)
  */
 export const rentalStageMessages: Record<RentalStage, string> = {
-  idle: '대기 중',
-  blockchain: '블록체인 트랜잭션 처리 중...',
-  hub: 'GPU 연결 준비 중...',
-  complete: '완료!',
-  error: '오류 발생',
+  idle: 'Ready',
+  blockchain: 'Processing blockchain transaction...',
+  hub: 'Connecting to GPU...',
+  complete: 'Complete!',
+  error: 'Error occurred',
 };
 
 /**

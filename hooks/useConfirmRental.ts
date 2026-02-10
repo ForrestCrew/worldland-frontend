@@ -44,7 +44,7 @@ export function useConfirmRental() {
       // Get auth token
       const storedAuth = localStorage.getItem('worldland_auth');
       if (!storedAuth) {
-        throw { status: 401, message: '인증이 필요합니다', shouldRetry: false };
+        throw { status: 401, message: 'Authentication required', shouldRetry: false };
       }
 
       let token: string | null = null;
@@ -52,7 +52,7 @@ export function useConfirmRental() {
         const parsed = JSON.parse(storedAuth);
         token = parsed.token || null;
       } catch {
-        throw { status: 401, message: '인증 정보가 손상되었습니다', shouldRetry: false };
+        throw { status: 401, message: 'Authentication data is corrupted', shouldRetry: false };
       }
 
       const response = await fetch(
@@ -121,15 +121,15 @@ export function useConfirmRental() {
       // Invalidate rental queries to trigger immediate refetch
       queryClient.invalidateQueries({ queryKey: ['rentals'] });
 
-      toast.success('임대 확인 완료', {
-        description: 'SSH 접속 정보가 준비되었습니다.',
+      toast.success('Rental confirmed', {
+        description: 'SSH credentials are ready.',
       });
     },
     onError: (error) => {
       // 202 is expected during retry - don't show error toast
       if (error.status === 202) {
         // Show info toast instead of error
-        toast.info('트랜잭션 확인 중', {
+        toast.info('Verifying transaction', {
           description: error.message,
         });
         return;

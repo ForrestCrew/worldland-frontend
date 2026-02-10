@@ -3,7 +3,7 @@ import { BaseError } from 'wagmi';
 /**
  * Web3 Error Message Mapping
  *
- * Converts wagmi/viem errors to Korean user-friendly messages.
+ * Converts wagmi/viem errors to user-friendly messages.
  * Used for all transaction error handling and toast/modal displays.
  */
 
@@ -12,26 +12,26 @@ import { BaseError } from 'wagmi';
  */
 const errorMessages: Record<string, string> = {
   // Wallet errors
-  UserRejectedRequestError: '사용자가 트랜잭션을 취소했습니다',
+  UserRejectedRequestError: 'Transaction was cancelled by user',
 
   // Balance errors
-  InsufficientFundsError: '잔액이 부족합니다',
+  InsufficientFundsError: 'Insufficient balance',
 
   // Transaction errors
-  TransactionExecutionError: '트랜잭션 실행에 실패했습니다',
-  TransactionNotFoundError: '트랜잭션을 찾을 수 없습니다',
-  TransactionReceiptNotFoundError: '트랜잭션 영수증을 찾을 수 없습니다',
+  TransactionExecutionError: 'Transaction execution failed',
+  TransactionNotFoundError: 'Transaction not found',
+  TransactionReceiptNotFoundError: 'Transaction receipt not found',
 
   // Network errors
-  ChainDisconnectedError: '네트워크 연결이 끊어졌습니다',
-  ChainNotConfiguredError: '지원하지 않는 네트워크입니다',
-  SwitchChainError: '네트워크 전환에 실패했습니다',
-  ProviderNotFoundError: '지갑을 찾을 수 없습니다',
-  ConnectorNotFoundError: '지갑 연결을 찾을 수 없습니다',
+  ChainDisconnectedError: 'Network connection lost',
+  ChainNotConfiguredError: 'Unsupported network',
+  SwitchChainError: 'Failed to switch network',
+  ProviderNotFoundError: 'Wallet not found',
+  ConnectorNotFoundError: 'Wallet connection not found',
 
   // Request errors
-  RpcRequestError: 'RPC 요청에 실패했습니다',
-  TimeoutError: '요청 시간이 초과되었습니다',
+  RpcRequestError: 'RPC request failed',
+  TimeoutError: 'Request timed out',
 };
 
 /**
@@ -40,51 +40,51 @@ const errorMessages: Record<string, string> = {
 const revertPatterns: Array<{ pattern: RegExp; message: string }> = [
   {
     pattern: /Insufficient deposit/i,
-    message: '예치금이 부족합니다',
+    message: 'Insufficient deposit',
   },
   {
     pattern: /Amount must be positive/i,
-    message: '금액은 0보다 커야 합니다',
+    message: 'Amount must be greater than 0',
   },
   {
     pattern: /Insufficient allowance/i,
-    message: '토큰 승인이 필요합니다. 먼저 승인 후 다시 시도해 주세요.',
+    message: 'Token approval required. Please approve first and try again.',
   },
   {
     pattern: /ERC20: transfer amount exceeds balance/i,
-    message: '토큰 잔액이 부족합니다',
+    message: 'Insufficient token balance',
   },
   {
     pattern: /Invalid provider/i,
-    message: '유효하지 않은 공급자입니다',
+    message: 'Invalid provider',
   },
   {
     pattern: /Price must be positive/i,
-    message: '가격은 0보다 커야 합니다',
+    message: 'Price must be greater than 0',
   },
   {
     pattern: /No deposit/i,
-    message: '예치금이 없습니다. 먼저 입금해 주세요.',
+    message: 'No deposit found. Please deposit first.',
   },
   {
     pattern: /Rental not active/i,
-    message: '활성화된 임대가 아닙니다',
+    message: 'Rental is not active',
   },
   {
     pattern: /Not authorized/i,
-    message: '권한이 없습니다',
+    message: 'Not authorized',
   },
   {
     pattern: /execution reverted/i,
-    message: '컨트랙트 실행이 취소되었습니다',
+    message: 'Contract execution reverted',
   },
 ];
 
 /**
- * Get user-friendly Korean error message from Web3 error
+ * Get user-friendly error message from Web3 error
  *
  * @param error - The error object from wagmi/viem
- * @returns Korean error message for user display
+ * @returns Error message for user display
  *
  * @example
  * try {
@@ -95,7 +95,7 @@ const revertPatterns: Array<{ pattern: RegExp; message: string }> = [
  */
 export function getErrorMessage(error: unknown): string {
   if (!error) {
-    return '알 수 없는 오류가 발생했습니다';
+    return 'An unknown error occurred';
   }
 
   // Cast to BaseError for type safety
@@ -120,7 +120,7 @@ export function getErrorMessage(error: unknown): string {
     }
 
     // Default contract error message
-    return '컨트랙트 실행 중 오류가 발생했습니다';
+    return 'Contract execution error';
   }
 
   // Try to use shortMessage if available
@@ -140,8 +140,17 @@ export function getErrorMessage(error: unknown): string {
     }
   }
 
+  // For plain Error objects (e.g., Hub API errors like 409),
+  // use message directly if it looks user-friendly
+  if (error instanceof Error && error.message) {
+    const msg = error.message;
+    if (msg.length < 200 && !msg.includes('0x') && !msg.includes('stack')) {
+      return msg;
+    }
+  }
+
   // Default fallback message
-  return '트랜잭션 처리 중 오류가 발생했습니다';
+  return 'An error occurred while processing the transaction';
 }
 
 /**
@@ -212,28 +221,28 @@ export const confirmationErrorMessages: Record<number, {
   canRetry: boolean;
 }> = {
   202: {
-    title: '트랜잭션 확인 중',
-    message: '블록체인에서 트랜잭션을 확인하고 있습니다. 잠시만 기다려 주세요.',
+    title: 'Verifying Transaction',
+    message: 'Verifying transaction on blockchain. Please wait.',
     canRetry: true,
   },
   400: {
-    title: '잘못된 요청',
-    message: '트랜잭션 해시가 유효하지 않거나 세션 상태가 올바르지 않습니다.',
+    title: 'Invalid Request',
+    message: 'Transaction hash is invalid or session state is incorrect.',
     canRetry: false,
   },
   403: {
-    title: '권한 없음',
-    message: '이 세션에 대한 권한이 없습니다. 지갑 주소를 확인해 주세요.',
+    title: 'Unauthorized',
+    message: 'You do not have permission for this session. Please check your wallet address.',
     canRetry: false,
   },
   409: {
-    title: '중복 트랜잭션',
-    message: '이 트랜잭션은 이미 다른 세션에서 사용되었습니다.',
+    title: 'Duplicate Transaction',
+    message: 'This transaction has already been used by another session.',
     canRetry: false,
   },
   500: {
-    title: '서버 오류',
-    message: '컨테이너 시작에 실패했습니다. 잠시 후 다시 시도해 주세요.',
+    title: 'Server Error',
+    message: 'Failed to start container. Please try again later.',
     canRetry: true,
   },
 };
@@ -247,15 +256,15 @@ export function getConfirmationErrorMessage(status: number): {
   canRetry: boolean;
 } {
   return confirmationErrorMessages[status] || {
-    title: '알 수 없는 오류',
-    message: '예상치 못한 오류가 발생했습니다. 지원팀에 문의해 주세요.',
+    title: 'Unknown Error',
+    message: 'An unexpected error occurred. Please contact support.',
     canRetry: false,
   };
 }
 
 /**
  * Session extension error mapping
- * Maps backend error codes from Phase 16-03 to user-friendly Korean messages
+ * Maps backend error codes to user-friendly messages
  *
  * Error codes:
  * - EXT_001: Session not found
@@ -264,8 +273,8 @@ export function getConfirmationErrorMessage(status: number): {
  * - EXT_004: Maximum extensions reached (10)
  */
 export const EXTENSION_ERROR_MESSAGES: Record<string, string> = {
-  EXT_001: '세션을 찾을 수 없습니다',
-  EXT_002: '잔액이 부족합니다. 입금 후 다시 시도해 주세요.',
-  EXT_003: '실행 중인 세션만 연장할 수 있습니다',
-  EXT_004: '최대 연장 횟수(10회)에 도달했습니다',
+  EXT_001: 'Session not found',
+  EXT_002: 'Insufficient balance. Please deposit more and try again.',
+  EXT_003: 'Only running sessions can be extended',
+  EXT_004: 'Maximum extensions reached (10)',
 };

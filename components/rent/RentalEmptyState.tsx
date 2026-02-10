@@ -40,9 +40,9 @@ interface RentalEmptyStateProps {
  * />
  */
 export function RentalEmptyState({
-  title = '활성 임대 없음',
-  description = 'GPU 마켓플레이스에서 필요한 리소스를 찾아보세요',
-  buttonText = 'GPU 마켓플레이스 보기',
+  title = 'No Active Rentals',
+  description = 'Browse the GPU marketplace to find the resources you need',
+  buttonText = 'Browse GPU Marketplace',
   linkUrl = '/rent',
   className = '',
 }: RentalEmptyStateProps) {
@@ -99,17 +99,17 @@ export function RentalEmptyState({
 
         {/* Helpful tips */}
         <div className="mt-8 pt-6 border-t border-gray-800">
-          <div className="text-sm text-gray-500 mb-3">빠른 시작 가이드</div>
+          <div className="text-sm text-gray-500 mb-3">Quick Start Guide</div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
             <div className="bg-gray-800/50 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-1">
                 <span className="w-5 h-5 rounded-full bg-purple-600/30 text-purple-400 text-xs flex items-center justify-center font-medium">
                   1
                 </span>
-                <span className="text-sm text-gray-300">GPU 선택</span>
+                <span className="text-sm text-gray-300">Select GPU</span>
               </div>
               <p className="text-xs text-gray-500 pl-7">
-                원하는 GPU와 VRAM을 선택하세요
+                Choose your desired GPU from the marketplace
               </p>
             </div>
             <div className="bg-gray-800/50 rounded-lg p-3">
@@ -117,10 +117,10 @@ export function RentalEmptyState({
                 <span className="w-5 h-5 rounded-full bg-purple-600/30 text-purple-400 text-xs flex items-center justify-center font-medium">
                   2
                 </span>
-                <span className="text-sm text-gray-300">임대 시작</span>
+                <span className="text-sm text-gray-300">Start Rental</span>
               </div>
               <p className="text-xs text-gray-500 pl-7">
-                트랜잭션을 승인하여 임대를 시작하세요
+                Approve the transaction to start your rental
               </p>
             </div>
             <div className="bg-gray-800/50 rounded-lg p-3">
@@ -128,10 +128,10 @@ export function RentalEmptyState({
                 <span className="w-5 h-5 rounded-full bg-purple-600/30 text-purple-400 text-xs flex items-center justify-center font-medium">
                   3
                 </span>
-                <span className="text-sm text-gray-300">SSH 접속</span>
+                <span className="text-sm text-gray-300">SSH Access</span>
               </div>
               <p className="text-xs text-gray-500 pl-7">
-                제공된 SSH 정보로 접속하세요
+                Connect using the provided SSH credentials
               </p>
             </div>
           </div>

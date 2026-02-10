@@ -34,11 +34,11 @@ export function useStartMining() {
       });
     },
     onSuccess: (_data, variables) => {
-      toast.success('채굴 시작됨');
+      toast.success('Mining started');
       queryClient.invalidateQueries({ queryKey: ['mining', variables.providerId] });
     },
     onError: (error: Error) => {
-      toast.error('채굴 시작 실패', { description: error.message });
+      toast.error('Failed to start mining', { description: error.message });
     },
   });
 }
@@ -54,11 +54,11 @@ export function useStopMining() {
       return hubApi.stopMining(providerId);
     },
     onSuccess: (_data, providerId) => {
-      toast.success('채굴 중지됨');
+      toast.success('Mining stopped');
       queryClient.invalidateQueries({ queryKey: ['mining', providerId] });
     },
     onError: (error: Error) => {
-      toast.error('채굴 중지 실패', { description: error.message });
+      toast.error('Failed to stop mining', { description: error.message });
     },
   });
 }
@@ -74,11 +74,11 @@ export function useAllocateMiningGPU() {
       return hubApi.allocateMiningGPU(params.providerId, params.gpuCount);
     },
     onSuccess: (_data, variables) => {
-      toast.success(`GPU ${variables.gpuCount}개 채굴 할당 완료`);
+      toast.success(`${variables.gpuCount} GPU(s) allocated for mining`);
       queryClient.invalidateQueries({ queryKey: ['mining', variables.providerId] });
     },
     onError: (error: Error) => {
-      toast.error('GPU 할당 실패', { description: error.message });
+      toast.error('GPU allocation failed', { description: error.message });
     },
   });
 }
@@ -94,11 +94,11 @@ export function useReleaseMiningGPU() {
       return hubApi.releaseMiningGPU(params.providerId, params.gpuCount);
     },
     onSuccess: (_data, variables) => {
-      toast.success(`GPU ${variables.gpuCount}개 채굴 해제 완료`);
+      toast.success(`${variables.gpuCount} GPU(s) released from mining`);
       queryClient.invalidateQueries({ queryKey: ['mining', variables.providerId] });
     },
     onError: (error: Error) => {
-      toast.error('GPU 해제 실패', { description: error.message });
+      toast.error('GPU release failed', { description: error.message });
     },
   });
 }

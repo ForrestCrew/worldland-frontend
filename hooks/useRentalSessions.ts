@@ -6,7 +6,7 @@ import { useAccount } from 'wagmi';
 /**
  * Rental session state from Hub API
  */
-export type RentalSessionState = 'PENDING' | 'RUNNING' | 'STOPPED' | 'CANCELLED';
+export type RentalSessionState = 'PENDING' | 'RUNNING' | 'STOPPED' | 'CANCELLED' | 'FAILED';
 
 /**
  * Rental session data from Hub API
@@ -62,6 +62,20 @@ export interface RentalSession {
   extensionCount?: number;
   /** Current deposit balance in USDT - Phase 16 */
   balance?: string;
+  /** Container provisioning status for PENDING sessions */
+  containerStatus?: string;
+  /** Error reason when session is in FAILED state */
+  errorReason?: string;
+  /** Docker image used */
+  dockerImage?: string;
+  /** Number of GPUs requested */
+  gpuCount?: number;
+  /** CPU cores requested */
+  cpuCores?: number;
+  /** Memory in GB requested */
+  memoryGbReq?: number;
+  /** Storage in GB requested */
+  storageGb?: number;
 }
 
 /**
@@ -74,6 +88,8 @@ export interface UseRentalSessionsReturn {
   active: RentalSession[];
   /** Completed rentals (STOPPED or CANCELLED) */
   completed: RentalSession[];
+  /** Failed rentals (FAILED state - backend could not provision) */
+  failed: RentalSession[];
   /** Whether data is loading */
   isLoading: boolean;
   /** Error if fetch failed */
@@ -138,7 +154,7 @@ export function useRentalSessions(): UseRentalSessionsReturn {
       // Now we throw with clear error message before making API call.
       const storedAuth = localStorage.getItem('worldland_auth');
       if (!storedAuth) {
-        throw new Error('인증이 필요합니다. 지갑을 다시 연결해 주세요. (AUTH_MISSING)');
+        throw new Error('Authentication required. Please reconnect your wallet. (AUTH_MISSING)');
       }
 
       let token: string | null = null;
@@ -146,11 +162,11 @@ export function useRentalSessions(): UseRentalSessionsReturn {
         const parsed = JSON.parse(storedAuth);
         token = parsed.token || null;
       } catch {
-        throw new Error('인증 정보가 손상되었습니다. 지갑을 다시 연결해 주세요. (AUTH_INVALID)');
+        throw new Error('Authentication data is corrupted. Please reconnect your wallet. (AUTH_INVALID)');
       }
 
       if (!token) {
-        throw new Error('인증 토큰이 없습니다. 지갑을 다시 연결해 주세요. (TOKEN_MISSING)');
+        throw new Error('Authentication token missing. Please reconnect your wallet. (TOKEN_MISSING)');
       }
 
       const headers: Record<string, string> = {
@@ -170,7 +186,7 @@ export function useRentalSessions(): UseRentalSessionsReturn {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const message = errorData.error?.message || errorData.error || errorData.message || 'Unknown error';
-        throw new Error(`API 오류 (${response.status}): ${message}`);
+        throw new Error(`API error (${response.status}): ${message}`);
       }
 
       const data = await response.json();
@@ -180,10 +196,16 @@ export function useRentalSessions(): UseRentalSessionsReturn {
     },
     enabled: !!address,
     staleTime: 10000, // 10 seconds
-    refetchInterval: 30000, // 30 seconds polling
+    // Adaptive polling: 5s when there are PENDING sessions (to catch FAILED quickly),
+    // 30s otherwise for normal monitoring
+    refetchInterval: (query) => {
+      const data = query.state.data as RentalSession[] | undefined;
+      const hasPending = data?.some((s) => s.state === 'PENDING');
+      return hasPending ? 5000 : 30000;
+    },
   });
 
-  // Separate active vs completed for UI convenience
+  // Separate active vs completed vs failed for UI convenience
   const active = sessions.filter(
     (s) => s.state === 'RUNNING' || s.state === 'PENDING'
   );
@@ -192,10 +214,15 @@ export function useRentalSessions(): UseRentalSessionsReturn {
     (s) => s.state === 'STOPPED' || s.state === 'CANCELLED'
   );
 
+  const failed = sessions.filter(
+    (s) => s.state === 'FAILED'
+  );
+
   return {
     sessions,
     active,
     completed,
+    failed,
     isLoading,
     error: error as Error | null,
     refetch: () => {

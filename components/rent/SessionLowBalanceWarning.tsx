@@ -76,29 +76,29 @@ export function SessionLowBalanceWarning({
         <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" />
 
         <div className="flex-1">
-          <h4 className="text-yellow-400 font-medium mb-1">잔액 부족 경고</h4>
+          <h4 className="text-yellow-400 font-medium mb-1">Low Balance Warning</h4>
           <p className="text-sm text-gray-300 mb-3">
-            현재 잔액으로 약 {Math.floor(remainingMinutes)}분 동안만 실행 가능합니다.
-            세션이 종료되기 전에 연장하거나 입금하세요.
+            Current balance covers approximately {Math.floor(remainingMinutes)} minutes of runtime.
+            Extend or deposit before your session ends.
           </p>
           <div className="flex gap-2">
             <button
               onClick={onExtend}
               className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm hover:bg-purple-700 transition-colors"
             >
-              세션 연장
+              Extend
             </button>
             <button
               onClick={onDeposit}
               className="px-4 py-2 bg-gray-700 text-white rounded-lg text-sm hover:bg-gray-600 transition-colors"
             >
-              입금하기
+              Deposit
             </button>
             <button
               onClick={() => setIsDismissed(true)}
               className="px-4 py-2 text-gray-400 text-sm hover:text-gray-300 transition-colors"
             >
-              닫기
+              Dismiss
             </button>
           </div>
         </div>

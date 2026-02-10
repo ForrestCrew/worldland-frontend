@@ -42,7 +42,7 @@ export default function AuthHeader() {
                         href="/rent"
                         className="text-sm text-gray-400 hover:text-white transition-colors"
                     >
-                        GPU 임대
+                        GPU Rental
                     </Link>
 
                     {/* Balance display - full on md+, compact on mobile */}

@@ -7,8 +7,10 @@ import { hubApi } from '@/lib/api';
  * Filter parameters for GPU marketplace search
  */
 export interface GPUFilters {
-  /** GPU model filter (e.g., "RTX 4090") */
+  /** GPU type filter (legacy, e.g., "GPU x1") */
   gpuType?: string;
+  /** GPU model filter (NVML name, e.g., "Tesla T4") */
+  gpuModel?: string;
   /** Maximum price per hour in wei string */
   maxPricePerHour?: string;
   /** Region filter (e.g., "asia", "us", "eu") */
@@ -27,10 +29,24 @@ export interface AvailableGPU {
   providerId: string;
   /** Provider wallet address (for smart contract calls) */
   providerAddress: string;
-  /** GPU model (e.g., "RTX 4090") */
+  /** GPU type string (e.g., "RTX 4090", "GPU x1") */
   gpuType: string;
+  /** NVML GPU model name (e.g., "Tesla T4") */
+  gpuModel: string;
   /** VRAM in GB */
   vramGb: number;
+  /** VRAM in MB (precise) */
+  vramMb: number;
+  /** Total GPU count on this node */
+  totalGpus: number;
+  /** Available (unrented) GPU count */
+  availableGpus: number;
+  /** Total CPU cores on this node */
+  totalCpuCores: number;
+  /** Total memory in GB on this node */
+  totalMemoryGb: number;
+  /** Max ephemeral storage in GB available on this node */
+  maxStorageGb: number;
   /** Price per second in wei string */
   pricePerSecond: string;
   /** Price per hour in human-readable WLC (e.g., "1.50") */
@@ -101,6 +117,7 @@ export function useAvailableGPUs(filters: GPUFilters = {}): UseAvailableGPUsRetu
       // Build request body for POST endpoint
       const requestBody: {
         gpuType?: string;
+        gpuModel?: string;
         minMemoryGB?: number;
         maxPricePerSecond?: string;
         region?: string;
@@ -109,7 +126,9 @@ export function useAvailableGPUs(filters: GPUFilters = {}): UseAvailableGPUsRetu
         limit: 50,
       };
 
-      if (filters.gpuType) {
+      if (filters.gpuModel) {
+        requestBody.gpuModel = filters.gpuModel;
+      } else if (filters.gpuType) {
         requestBody.gpuType = filters.gpuType;
       }
 

@@ -116,12 +116,12 @@ export function useIndexedTransactionHistory(options: UseIndexedTransactionHisto
       );
 
       if (!response.ok) {
-        throw new Error('입출금 내역 조회에 실패했습니다');
+        throw new Error('Failed to fetch transaction history');
       }
 
       const json = await response.json();
       if (!json.success) {
-        throw new Error(json.error?.message || '입출금 내역 조회에 실패했습니다');
+        throw new Error(json.error?.message || 'Failed to fetch transaction history');
       }
 
       return json.data;

@@ -78,7 +78,7 @@ export function useExtendSession() {
       if (!storedAuth) {
         throw {
           status: 401,
-          message: '인증이 필요합니다',
+          message: 'Authentication required',
           code: 'AUTH_MISSING',
         };
       }
@@ -90,7 +90,7 @@ export function useExtendSession() {
       } catch {
         throw {
           status: 401,
-          message: '인증 정보가 손상되었습니다',
+          message: 'Authentication data is corrupted',
           code: 'AUTH_INVALID',
         };
       }
@@ -133,7 +133,7 @@ export function useExtendSession() {
 
       throw {
         status: response.status,
-        message: finalMessage || '세션 연장에 실패했습니다',
+        message: finalMessage || 'Failed to extend session',
         code: errorCode,
       };
     },
@@ -142,13 +142,13 @@ export function useExtendSession() {
       queryClient.invalidateQueries({ queryKey: ['rentals'] });
 
       // Show success toast
-      toast.success('세션이 연장되었습니다', {
-        description: '연장된 시간만큼 세션을 계속 사용할 수 있습니다.',
+      toast.success('Session extended', {
+        description: 'Your session has been extended successfully.',
       });
     },
     onError: (error) => {
       // Show error toast with mapped message
-      toast.error('세션 연장 실패', {
+      toast.error('Extension failed', {
         description: error.message,
       });
     },

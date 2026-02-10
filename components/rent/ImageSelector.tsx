@@ -54,11 +54,11 @@ export function ImageSelector({ value, onChange, disabled }: ImageSelectorProps)
     return (
       <div className="space-y-4">
         <label className="block text-sm text-gray-400">
-          컨테이너 이미지
+          Container Image
         </label>
         <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
           <p className="text-sm text-yellow-400">
-            프리셋 이미지를 불러올 수 없습니다. 기본 이미지가 사용됩니다.
+            Failed to load preset images. Default image will be used.
           </p>
         </div>
       </div>
@@ -70,11 +70,11 @@ export function ImageSelector({ value, onChange, disabled }: ImageSelectorProps)
     return (
       <div className="space-y-4">
         <label className="block text-sm text-gray-400">
-          컨테이너 이미지
+          Container Image
         </label>
         <div className="p-3 bg-gray-800/50 rounded-lg">
           <p className="text-sm text-gray-400">
-            등록된 프리셋 이미지가 없습니다. 기본 이미지가 사용됩니다.
+            No preset images available. Default image will be used.
           </p>
         </div>
       </div>
@@ -87,7 +87,7 @@ export function ImageSelector({ value, onChange, disabled }: ImageSelectorProps)
   return (
     <div className="space-y-4">
       <label className="block text-sm text-gray-400">
-        컨테이너 이미지
+        Container Image
       </label>
 
       {/* Preset images grouped by category */}

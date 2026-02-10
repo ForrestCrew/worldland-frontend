@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import {
   useAccount,
   useWriteContract,
@@ -35,6 +35,14 @@ export interface StartRentalParams {
   pricePerSecond: bigint;
   /** Container image (preset ID) - optional, uses default if not provided */
   image?: string;
+  /** GPU count (default 1) */
+  gpuCount: number;
+  /** CPU cores (default 4) */
+  cpuCores: number;
+  /** Memory in GB (default 16) */
+  memoryGB: number;
+  /** Storage in GB (default 50) */
+  storageGB: number;
 }
 
 /**
@@ -59,6 +67,8 @@ export interface UseStartRentalReturn {
   errorMessage: string | null;
   /** Stage-specific status message */
   stageMessage: string;
+  /** Whether session has been detected as FAILED after completion */
+  sessionFailed: boolean;
   /** Reset hook state to idle */
   reset: () => void;
 }
@@ -112,6 +122,8 @@ export function useStartRental(): UseStartRentalReturn {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sshCredentials, setSshCredentials] = useState<SSHCredentials | null>(null);
   const [hubError, setHubError] = useState<Error | null>(null);
+  const [sessionFailed, setSessionFailed] = useState(false);
+  const pollTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Blockchain transaction state
   const {
@@ -128,6 +140,94 @@ export function useStartRental(): UseStartRentalReturn {
     isSuccess: isConfirmed,
     error: confirmError,
   } = useWaitForTransactionReceipt({ hash });
+
+  /**
+   * Poll session status after completion to detect FAILED state.
+   *
+   * After TX confirms and Hub acknowledge is complete, the backend may still
+   * fail to create the container (quota exceeded, insufficient resources, etc).
+   * This effect polls every 5 seconds for up to 2 minutes to detect FAILED state.
+   * On detection, sets sessionFailed=true which triggers error UI in the modal.
+   */
+  useEffect(() => {
+    // Only poll when stage is 'complete' and we have a session ID
+    if (stage !== 'complete' || !sessionId) {
+      // Clear any existing timer when not in complete stage
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+      return;
+    }
+
+    let pollCount = 0;
+    const maxPolls = 24; // 24 * 5s = 2 minutes
+
+    const checkSessionStatus = async () => {
+      try {
+        const storedAuth = localStorage.getItem('worldland_auth');
+        const token = storedAuth ? JSON.parse(storedAuth).token : null;
+
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        const response = await fetch(
+          `${HUB_API_URL}/api/v1/rentals/${sessionId}`,
+          { method: 'GET', credentials: 'include', headers }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          const session = data.data ?? data;
+
+          if (session.state === 'FAILED') {
+            setSessionFailed(true);
+            // Stop polling
+            if (pollTimerRef.current) {
+              clearInterval(pollTimerRef.current);
+              pollTimerRef.current = null;
+            }
+            // Invalidate rental list to show FAILED in session list
+            queryClient.invalidateQueries({ queryKey: ['rentals', 'user', address] });
+            return;
+          }
+
+          if (session.state === 'RUNNING') {
+            // Session is healthy, stop polling
+            if (pollTimerRef.current) {
+              clearInterval(pollTimerRef.current);
+              pollTimerRef.current = null;
+            }
+            return;
+          }
+        }
+      } catch {
+        // Ignore individual poll errors, will retry
+      }
+
+      pollCount++;
+      if (pollCount >= maxPolls && pollTimerRef.current) {
+        clearInterval(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+    };
+
+    // Start polling
+    pollTimerRef.current = setInterval(checkSessionStatus, 5000);
+    // Also check immediately
+    checkSessionStatus();
+
+    return () => {
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+    };
+  }, [stage, sessionId, queryClient, address]);
 
   // Derive 6-state blockchain transaction status
   const getTxStatus = (): TransactionStatus => {
@@ -148,11 +248,19 @@ export function useStartRental(): UseStartRentalReturn {
     nodeId: string;
     pricePerSecond: string;
     image?: string;
+    gpuCount: number;
+    cpuCores: number;
+    memoryGB: number;
+    storageGB: number;
   }): Promise<string> => {
     const requestBody = {
       nodeId: params.nodeId,
       pricePerSecond: params.pricePerSecond,
       ...(params.image && { image: params.image }),
+      gpuCount: params.gpuCount,
+      cpuCores: params.cpuCores,
+      memoryGB: params.memoryGB,
+      storageGB: params.storageGB,
     };
     console.log('[createSession] Request:', requestBody);
     console.log('[createSession] Auth headers:', getAuthHeaders());
@@ -167,7 +275,12 @@ export function useStartRental(): UseStartRentalReturn {
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('[createSession] Error response:', response.status, errorData);
-      throw new Error(errorData.error || `세션 생성 실패: ${response.status}`);
+
+      // 409: Already have an active rental
+      if (response.status === 409) {
+        throw new Error('You already have an active rental. Please stop it before starting a new one.');
+      }
+      throw new Error(errorData.error || `Session creation failed: ${response.status}`);
     }
 
     const data = await response.json();
@@ -188,7 +301,7 @@ export function useStartRental(): UseStartRentalReturn {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `세션 확인 실패: ${response.status}`);
+      throw new Error(errorData.error || `Session confirmation failed: ${response.status}`);
     }
   };
 
@@ -206,12 +319,12 @@ export function useStartRental(): UseStartRentalReturn {
     // 202 means pod is still being provisioned - treat as retryable error
     if (response.status === 202) {
       const data = await response.json().catch(() => ({}));
-      throw new Error(data.message || 'Pod가 준비 중입니다. 잠시 후 다시 시도해주세요.');
+      throw new Error(data.message || 'Pod is being provisioned. Please try again shortly.');
     }
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `렌탈 시작 실패: ${response.status}`);
+      throw new Error(errorData.error || `Rental start failed: ${response.status}`);
     }
 
     const data = await response.json();
@@ -229,7 +342,7 @@ export function useStartRental(): UseStartRentalReturn {
   const startRental = useCallback(
     async (params: StartRentalParams): Promise<SSHCredentials | null> => {
       if (!address) {
-        throw new Error('지갑이 연결되지 않았습니다');
+        throw new Error('Wallet not connected');
       }
 
       try {
@@ -244,6 +357,10 @@ export function useStartRental(): UseStartRentalReturn {
           nodeId: params.nodeId,
           pricePerSecond: params.pricePerSecond.toString(),
           image: params.image,
+          gpuCount: params.gpuCount,
+          cpuCores: params.cpuCores,
+          memoryGB: params.memoryGB,
+          storageGB: params.storageGB,
         });
         setSessionId(newSessionId);
 
@@ -314,6 +431,11 @@ export function useStartRental(): UseStartRentalReturn {
     setSessionId(null);
     setSshCredentials(null);
     setHubError(null);
+    setSessionFailed(false);
+    if (pollTimerRef.current) {
+      clearInterval(pollTimerRef.current);
+      pollTimerRef.current = null;
+    }
   }, [resetWrite]);
 
   // Combined error (blockchain or hub)
@@ -333,6 +455,7 @@ export function useStartRental(): UseStartRentalReturn {
     error,
     errorMessage,
     stageMessage,
+    sessionFailed,
     reset,
   };
 }

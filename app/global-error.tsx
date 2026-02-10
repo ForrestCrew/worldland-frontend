@@ -38,25 +38,25 @@ export default function GlobalError({
           </div>
 
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            심각한 오류가 발생했습니다
+            A critical error occurred
           </h2>
 
           <p className="text-gray-600 mb-6">
-            애플리케이션에 심각한 오류가 발생했습니다.
+            A critical error occurred in the application.
             <br />
-            페이지를 새로고침하여 다시 시도해 주세요.
+            Please refresh the page to try again.
           </p>
 
           <button
             onClick={reset}
             className="w-full px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors"
           >
-            애플리케이션 다시 로드
+            Reload Application
           </button>
 
           {error.digest && (
             <p className="mt-4 text-xs text-gray-400">
-              오류 ID: {error.digest}
+              Error ID: {error.digest}
             </p>
           )}
         </div>

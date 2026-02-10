@@ -84,7 +84,7 @@ export function ErrorModal({
                         ) : (
                           <ChevronRight className="h-4 w-4" />
                         )}
-                        기술 세부정보 보기
+                        Technical Details
                       </button>
                       {showDetails && (
                         <pre className="mt-2 text-xs bg-gray-100 p-3 rounded overflow-auto max-h-32 text-gray-700">
@@ -101,7 +101,7 @@ export function ErrorModal({
                   onClick={onClose}
                   className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
                 >
-                  닫기
+                  Close
                 </button>
                 {onRetry && (
                   <button
@@ -111,7 +111,7 @@ export function ErrorModal({
                     }}
                     className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
                   >
-                    다시 시도
+                    Try Again
                   </button>
                 )}
               </div>

@@ -70,7 +70,7 @@ export function SessionCountdownTimer({
     return (
       <div className={`flex items-center gap-2 text-gray-500 ${className}`}>
         <Clock className="w-4 h-4" />
-        <span className="text-sm">만료 시간 없음</span>
+        <span className="text-sm">No expiration</span>
       </div>
     );
   }

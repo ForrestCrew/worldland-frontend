@@ -20,21 +20,21 @@ interface GPUFilterBarProps {
  * Available region options
  */
 const REGION_OPTIONS = [
-  { value: '', label: '전체 지역' },
-  { value: 'asia', label: '아시아' },
-  { value: 'us', label: '북미' },
-  { value: 'eu', label: '유럽' },
+  { value: '', label: 'All Regions' },
+  { value: 'asia', label: 'Asia' },
+  { value: 'us', label: 'North America' },
+  { value: 'eu', label: 'Europe' },
 ];
 
 /**
  * Available VRAM options (in GB)
  */
 const VRAM_OPTIONS = [
-  { value: 0, label: '전체 VRAM' },
-  { value: 8, label: '8 GB 이상' },
-  { value: 16, label: '16 GB 이상' },
-  { value: 24, label: '24 GB 이상' },
-  { value: 48, label: '48 GB 이상' },
+  { value: 0, label: 'All VRAM' },
+  { value: 8, label: '8 GB+' },
+  { value: 16, label: '16 GB+' },
+  { value: 24, label: '24 GB+' },
+  { value: 48, label: '48 GB+' },
 ];
 
 /**
@@ -146,7 +146,7 @@ export function GPUFilterBar({
         {/* GPU model search */}
         <div className="flex-1">
           <label className="block text-sm text-gray-400 mb-2">
-            GPU 검색
+            Search GPU
           </label>
           <div className="relative">
             <input
@@ -180,7 +180,7 @@ export function GPUFilterBar({
         {/* Max price filter */}
         <div className="w-full md:w-48">
           <label className="block text-sm text-gray-400 mb-2">
-            최대 가격 (WLC/시간)
+            Max Price (WLC/hr)
           </label>
           <input
             type="number"
@@ -202,7 +202,7 @@ export function GPUFilterBar({
         {/* VRAM filter */}
         <div className="w-full md:w-40">
           <label className="block text-sm text-gray-400 mb-2">
-            최소 VRAM
+            Min VRAM
           </label>
           <select
             value={filters.minVram || 0}
@@ -225,7 +225,7 @@ export function GPUFilterBar({
         {/* Region filter */}
         <div className="w-full md:w-40">
           <label className="block text-sm text-gray-400 mb-2">
-            지역
+            Region
           </label>
           <select
             value={filters.region || ''}
@@ -270,7 +270,7 @@ export function GPUFilterBar({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-            필터 초기화
+            Clear Filters
           </button>
         </div>
       )}

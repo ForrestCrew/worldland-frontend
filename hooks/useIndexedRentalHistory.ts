@@ -123,12 +123,12 @@ export function useIndexedRentalHistory(options: UseIndexedRentalHistoryOptions 
       );
 
       if (!response.ok) {
-        throw new Error('임대 내역 조회에 실패했습니다');
+        throw new Error('Failed to fetch rental history');
       }
 
       const json = await response.json();
       if (!json.success) {
-        throw new Error(json.error?.message || '임대 내역 조회에 실패했습니다');
+        throw new Error(json.error?.message || 'Failed to fetch rental history');
       }
 
       return json.data;

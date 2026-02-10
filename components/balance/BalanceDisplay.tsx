@@ -74,7 +74,7 @@ export function BalanceDisplay({
   // Button disabled state: wrong network or loading
   const buttonsDisabled = !canWrite || loading;
   const tooltipText = isWrongNetwork
-    ? '올바른 네트워크에 연결하세요'
+    ? 'Please connect to the correct network'
     : '';
 
   if (loading) {
@@ -89,7 +89,7 @@ export function BalanceDisplay({
     <div className={`${className}`}>
       {/* Label */}
       <div className="text-sm text-gray-400 mb-1">
-        예치금 잔액
+        Deposit Balance
       </div>
 
       {/* Balance value: crypto */}
@@ -118,7 +118,7 @@ export function BalanceDisplay({
               }
             `}
           >
-            입금
+            Deposit
           </button>
 
           {/* Withdraw button */}
@@ -134,7 +134,7 @@ export function BalanceDisplay({
               }
             `}
           >
-            출금
+            Withdraw
           </button>
         </div>
       )}

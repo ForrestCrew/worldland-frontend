@@ -28,7 +28,7 @@ export function useCancelSession() {
       // Get auth token
       const storedAuth = localStorage.getItem('worldland_auth');
       if (!storedAuth) {
-        throw { status: 401, message: '인증이 필요합니다' };
+        throw { status: 401, message: 'Authentication required' };
       }
 
       let token: string | null = null;
@@ -36,7 +36,7 @@ export function useCancelSession() {
         const parsed = JSON.parse(storedAuth);
         token = parsed.token || null;
       } catch {
-        throw { status: 401, message: '인증 정보가 손상되었습니다' };
+        throw { status: 401, message: 'Authentication data is corrupted' };
       }
 
       const response = await fetch(
@@ -54,7 +54,7 @@ export function useCancelSession() {
         const data = await response.json().catch(() => ({}));
         throw {
           status: response.status,
-          message: data.error?.message || data.error || '세션 취소에 실패했습니다',
+          message: data.error?.message || data.error || 'Failed to cancel session',
         };
       }
     },
@@ -62,12 +62,12 @@ export function useCancelSession() {
       // Invalidate rental queries to trigger immediate refetch
       queryClient.invalidateQueries({ queryKey: ['rentals'] });
 
-      toast.success('세션 취소됨', {
-        description: '대기 중인 세션이 취소되었습니다.',
+      toast.success('Session cancelled', {
+        description: 'The pending session has been cancelled.',
       });
     },
     onError: (error) => {
-      toast.error('세션 취소 실패', {
+      toast.error('Cancel failed', {
         description: error.message,
       });
     },

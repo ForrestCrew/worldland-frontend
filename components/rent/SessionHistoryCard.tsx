@@ -1,12 +1,11 @@
 'use client';
 
 import { format, formatDistanceStrict } from 'date-fns';
-import { ko } from 'date-fns/locale';
 
 /**
  * Session state for completed sessions
  */
-export type CompletedSessionState = 'STOPPED' | 'CANCELLED';
+export type CompletedSessionState = 'STOPPED' | 'CANCELLED' | 'FAILED';
 
 /**
  * Completed session data
@@ -26,6 +25,8 @@ export interface CompletedSession {
   settlementAmount?: string;
   /** Human-readable settlement amount in WLC */
   settlementAmountDisplay?: string;
+  /** Error reason when session is in FAILED state */
+  errorReason?: string;
 }
 
 /**
@@ -44,12 +45,17 @@ interface SessionHistoryCardProps {
 function StatusBadge({ state }: { state: CompletedSessionState }) {
   const statusConfig = {
     STOPPED: {
-      label: '완료',
+      label: 'Completed',
       bgColor: 'bg-gray-500/20',
       textColor: 'text-gray-400',
     },
     CANCELLED: {
-      label: '취소됨',
+      label: 'Cancelled',
+      bgColor: 'bg-red-500/20',
+      textColor: 'text-red-400',
+    },
+    FAILED: {
+      label: 'Failed',
       bgColor: 'bg-red-500/20',
       textColor: 'text-red-400',
     },
@@ -80,7 +86,7 @@ function calculateDuration(startTime?: string, stopTime?: string): string {
   try {
     const start = new Date(startTime);
     const stop = new Date(stopTime);
-    return formatDistanceStrict(start, stop, { locale: ko });
+    return formatDistanceStrict(start, stop);
   } catch {
     return '-';
   }
@@ -96,7 +102,7 @@ function formatTimestamp(timestamp?: string): string {
 
   try {
     const date = new Date(timestamp);
-    return format(date, 'yyyy.MM.dd HH:mm', { locale: ko });
+    return format(date, 'yyyy.MM.dd HH:mm');
   } catch {
     return '-';
   }
@@ -161,28 +167,40 @@ export function SessionHistoryCard({
       <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm mb-3">
         {/* Start time */}
         <div>
-          <div className="text-gray-500 text-xs mb-0.5">시작</div>
+          <div className="text-gray-500 text-xs mb-0.5">Start</div>
           <div className="text-gray-300">{formatTimestamp(session.startTime)}</div>
         </div>
 
         {/* End time */}
         <div>
-          <div className="text-gray-500 text-xs mb-0.5">종료</div>
+          <div className="text-gray-500 text-xs mb-0.5">End</div>
           <div className="text-gray-300">{formatTimestamp(session.stopTime)}</div>
         </div>
 
         {/* Duration */}
         <div>
-          <div className="text-gray-500 text-xs mb-0.5">이용 시간</div>
+          <div className="text-gray-500 text-xs mb-0.5">Duration</div>
           <div className="text-gray-300">{duration}</div>
         </div>
 
         {/* Settlement */}
         <div>
-          <div className="text-gray-500 text-xs mb-0.5">정산 금액</div>
+          <div className="text-gray-500 text-xs mb-0.5">Settlement</div>
           <div className="text-white font-medium">{settlementFormatted} WLC</div>
         </div>
       </div>
+
+      {/* Failed session error message */}
+      {session.state === 'FAILED' && (
+        <div className="mb-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+          <div className="text-sm text-red-400 font-medium mb-1">
+            Container Creation Failed
+          </div>
+          <div className="text-xs text-red-300/70">
+            {session.errorReason || 'Container creation failed due to insufficient resources. Blockchain transaction completed, refund may be needed.'}
+          </div>
+        </div>
+      )}
 
       {/* Session ID footer */}
       <div className="pt-2 border-t border-gray-800">

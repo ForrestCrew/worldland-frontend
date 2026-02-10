@@ -155,6 +155,25 @@ class HubApiClient {
       body: JSON.stringify({ gpuCount }),
     });
   }
+
+  // GPU Types (RunPod-style marketplace)
+  async getGPUTypes(): Promise<{ gpuTypes: GPUTypeInfo[] }> {
+    return this.request('/api/v1/gpu-types');
+  }
+}
+
+// GPU Type marketplace data
+export interface GPUTypeInfo {
+  gpuModel: string;
+  vramGb: number;
+  vramMb: number;
+  totalGpus: number;
+  availableGpus: number;
+  totalNodes: number;
+  pricePerHour: string;
+  avgCpuCores: number;
+  avgMemoryGb: number;
+  availability: 'high' | 'medium' | 'low' | 'none';
 }
 
 export class ApiError extends Error {

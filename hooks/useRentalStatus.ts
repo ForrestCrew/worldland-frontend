@@ -5,7 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 /**
  * Rental status state from Hub API
  */
-export type RentalStatusState = 'PENDING' | 'RUNNING' | 'STOPPED' | 'CANCELLED';
+export type RentalStatusState = 'PENDING' | 'RUNNING' | 'STOPPED' | 'CANCELLED' | 'FAILED';
 
 /**
  * Rental status data from Hub API
@@ -25,6 +25,8 @@ export interface RentalStatusData {
   sshUser?: string;
   /** SSH password (only shown during active session) */
   sshPassword?: string;
+  /** Error reason when session is in FAILED state */
+  errorReason?: string;
 }
 
 /**
@@ -45,6 +47,8 @@ export interface UseRentalStatusReturn {
   isRunning: boolean;
   /** Whether rental has ended (STOPPED or CANCELLED) */
   isEnded: boolean;
+  /** Whether rental has failed (container provisioning failed) */
+  isFailed: boolean;
 }
 
 const HUB_API_URL = process.env.NEXT_PUBLIC_HUB_API_URL || 'http://localhost:8080';
@@ -137,7 +141,7 @@ export function useRentalStatus(
         return 30000;
       }
 
-      // Stop polling if STOPPED or CANCELLED (terminal states)
+      // Stop polling if STOPPED, CANCELLED, or FAILED (terminal states)
       return false;
     },
   });
@@ -146,6 +150,7 @@ export function useRentalStatus(
   const isPending = status?.state === 'PENDING';
   const isRunning = status?.state === 'RUNNING';
   const isEnded = status?.state === 'STOPPED' || status?.state === 'CANCELLED';
+  const isFailed = status?.state === 'FAILED';
 
   return {
     status,
@@ -157,5 +162,6 @@ export function useRentalStatus(
     isPending,
     isRunning,
     isEnded,
+    isFailed,
   };
 }

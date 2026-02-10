@@ -151,7 +151,7 @@ export function useDeposit(): UseDepositReturn {
   const deposit = useCallback(
     async (amount: string) => {
       if (!address) {
-        throw new Error('지갑이 연결되지 않았습니다');
+        throw new Error('Wallet not connected');
       }
 
       const amountWei = parseEther(amount);

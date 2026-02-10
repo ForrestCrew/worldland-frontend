@@ -113,7 +113,7 @@ export function WalletHeader() {
 
           {/* Account info */}
           <div className="px-4 py-3 border-b border-gray-700">
-            <div className="text-xs text-gray-500 mb-1">지갑 주소</div>
+            <div className="text-xs text-gray-500 mb-1">Wallet Address</div>
             <div className="flex items-center gap-2">
               <span className="text-white font-mono text-sm truncate">
                 {address}
@@ -121,7 +121,7 @@ export function WalletHeader() {
               <button
                 onClick={() => navigator.clipboard.writeText(address || '')}
                 className="text-gray-400 hover:text-white"
-                title="주소 복사"
+                title="Copy address"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
@@ -132,7 +132,7 @@ export function WalletHeader() {
 
           {/* Balance section */}
           <div className="px-4 py-3 border-b border-gray-700">
-            <div className="text-xs text-gray-500 mb-1">잔액</div>
+            <div className="text-xs text-gray-500 mb-1">Balance</div>
             <div className="text-white text-lg font-medium">
               {balanceFormatted || '0.0000'}
             </div>
@@ -140,8 +140,8 @@ export function WalletHeader() {
 
           {/* Network section */}
           <div className="px-4 py-3 border-b border-gray-700">
-            <div className="text-xs text-gray-500 mb-1">네트워크</div>
-            <div className="text-white text-sm">{chainName || '알 수 없음'}</div>
+            <div className="text-xs text-gray-500 mb-1">Network</div>
+            <div className="text-white text-sm">{chainName || 'Unknown'}</div>
           </div>
 
           {/* Auth section */}
@@ -152,7 +152,7 @@ export function WalletHeader() {
                 disabled={isAuthenticating}
                 className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isAuthenticating ? '서명 중...' : '로그인 (SIWE)'}
+                {isAuthenticating ? 'Signing...' : 'Sign In (SIWE)'}
               </button>
             </div>
           )}
@@ -167,7 +167,7 @@ export function WalletHeader() {
                 setIsDropdownOpen(false);
               }}
             >
-              거래 내역 보기
+              Transaction History
             </button>
 
             {/* Logout (if authenticated) */}
@@ -179,7 +179,7 @@ export function WalletHeader() {
                 }}
                 className="w-full text-left text-sm text-gray-400 hover:text-white py-1"
               >
-                로그아웃
+                Sign Out
               </button>
             )}
 
@@ -191,7 +191,7 @@ export function WalletHeader() {
               }}
               className="w-full text-left text-sm text-red-400 hover:text-red-300 py-1"
             >
-              지갑 연결 해제
+              Disconnect Wallet
             </button>
           </div>
         </div>

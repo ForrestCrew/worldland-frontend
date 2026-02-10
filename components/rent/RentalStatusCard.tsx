@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import { SSHCredentials, type SSHCredentialsData } from './SSHCredentials';
 import { SessionExtensionModal } from './SessionExtensionModal';
 import { SessionCountdownTimer } from './SessionCountdownTimer';
@@ -15,7 +14,7 @@ import { toast } from 'sonner';
 /**
  * Rental status type
  */
-export type RentalStatus = 'PENDING' | 'RUNNING' | 'STOPPED';
+export type RentalStatus = 'PENDING' | 'RUNNING' | 'STOPPED' | 'FAILED';
 
 /**
  * Rental session data
@@ -49,6 +48,16 @@ export interface RentalSession {
   extension_count?: number;
   /** Current deposit balance in USDT - Phase 16 */
   balance?: string;
+  /** Container provisioning status ("Pending"|"Creating"|"Starting"|"Running"|"Failed") */
+  container_status?: string;
+  /** Error reason when session is in FAILED state */
+  error_reason?: string;
+  /** Requested resources */
+  docker_image?: string;
+  gpu_count?: number;
+  cpu_cores?: number;
+  memory_gb_req?: number;
+  storage_gb?: number;
 }
 
 /**
@@ -81,24 +90,31 @@ interface RentalStatusCardProps {
 function StatusBadge({ status }: { status: RentalStatus }) {
   const statusConfig = {
     PENDING: {
-      label: '시작 중',
+      label: 'Starting',
       bgColor: 'bg-yellow-500/20',
       textColor: 'text-yellow-400',
       dotColor: 'bg-yellow-400',
       animate: true,
     },
     RUNNING: {
-      label: '실행 중',
+      label: 'Running',
       bgColor: 'bg-green-500/20',
       textColor: 'text-green-400',
       dotColor: 'bg-green-400',
       animate: false,
     },
     STOPPED: {
-      label: '중지됨',
+      label: 'Stopped',
       bgColor: 'bg-gray-500/20',
       textColor: 'text-gray-400',
       dotColor: 'bg-gray-400',
+      animate: false,
+    },
+    FAILED: {
+      label: 'Failed',
+      bgColor: 'bg-red-500/20',
+      textColor: 'text-red-400',
+      dotColor: 'bg-red-400',
       animate: false,
     },
   };
@@ -175,9 +191,9 @@ function PendingContent({
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           <div>
-            <div className="text-gray-300 font-medium">TTL 만료됨</div>
+            <div className="text-gray-300 font-medium">TTL Expired</div>
             <div className="text-sm text-gray-500">
-              세션이 자동으로 취소됩니다. 새로 임대를 시작해 주세요.
+              Session will be automatically cancelled. Please start a new rental.
             </div>
           </div>
         </div>
@@ -198,9 +214,19 @@ function PendingContent({
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
           </svg>
           <div>
-            <div className="font-medium">확인 대기 중</div>
+            <div className="font-medium">
+              {rental.container_status === 'Creating' && 'Creating container'}
+              {rental.container_status === 'Starting' && 'Starting SSH server'}
+              {rental.container_status === 'Running' && 'Ready'}
+              {rental.container_status === 'Failed' && 'Container creation failed'}
+              {(!rental.container_status || rental.container_status === 'Pending') && 'Awaiting confirmation'}
+            </div>
             <div className="text-sm opacity-70">
-              트랜잭션 검증이 완료되면 SSH 정보가 제공됩니다
+              {rental.container_status === 'Creating' && 'Downloading image and creating container'}
+              {rental.container_status === 'Starting' && 'SSH server is starting. Connection will be available soon'}
+              {rental.container_status === 'Running' && 'Will transition to RUNNING shortly'}
+              {rental.container_status === 'Failed' && 'Container creation failed. Please try again'}
+              {(!rental.container_status || rental.container_status === 'Pending') && 'SSH credentials will be provided after transaction verification'}
             </div>
           </div>
         </div>
@@ -211,7 +237,7 @@ function PendingContent({
             {String(timeRemaining.minutes).padStart(2, '0')}:
             {String(timeRemaining.seconds).padStart(2, '0')}
           </div>
-          <div className="text-xs opacity-70">남은 시간</div>
+          <div className="text-xs opacity-70">remaining</div>
         </div>
       </div>
 
@@ -237,10 +263,10 @@ function PendingContent({
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                 </svg>
-                재시도 중...
+                Retrying...
               </span>
             ) : (
-              '다시 시도'
+              'Retry'
             )}
           </button>
         )}
@@ -250,8 +276,48 @@ function PendingContent({
           disabled={cancelMutation.isPending}
           className="px-3 py-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-700/50 text-white rounded text-sm font-medium transition-colors"
         >
-          {cancelMutation.isPending ? '취소 중...' : '취소'}
+          {cancelMutation.isPending ? 'Cancelling...' : 'Cancel'}
         </button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * FailedContent - Error state UI for failed sessions
+ *
+ * Shows when backend fails to create container after blockchain TX confirms.
+ * Displays error message explaining that TX was successful but container
+ * provisioning failed, and that a refund may be needed.
+ */
+function FailedContent({ rental }: { rental: RentalSession }) {
+  return (
+    <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
+      <div className="flex items-start gap-3">
+        <svg className="w-6 h-6 text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+        </svg>
+        <div className="flex-1">
+          <div className="text-red-400 font-semibold text-base mb-2">GPU Rental Failed</div>
+          <div className="text-sm text-red-300 mb-3">
+            Container creation failed due to insufficient resources. The blockchain transaction was completed, but a refund may be needed.
+          </div>
+          {rental.error_reason && (
+            <div className="text-xs text-red-300/70 bg-red-500/10 rounded p-2 font-mono break-all">
+              <span className="opacity-70">Details: </span>
+              {rental.error_reason}
+            </div>
+          )}
+          {rental.tx_hash && (
+            <div className="mt-2 p-2 bg-black/20 rounded font-mono text-xs break-all text-red-300/60">
+              <span className="opacity-50">tx: </span>
+              {rental.tx_hash}
+            </div>
+          )}
+          <div className="mt-3 p-2 bg-yellow-500/10 border border-yellow-500/20 rounded text-xs text-yellow-400">
+            Refunds are processed automatically during settlement or contact support.
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -290,7 +356,6 @@ export function RentalStatusCard({
   // Format rental started time with Korean locale
   const startedAgo = formatDistanceToNow(new Date(rental.started_at), {
     addSuffix: true,
-    locale: ko,
   });
 
   // Use backend-provided human-readable price per hour
@@ -314,15 +379,14 @@ export function RentalStatusCard({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h3 className="text-xl font-bold text-white">{rental.gpu_type}</h3>
-          <p className="text-sm text-gray-400">{rental.vram_gb} GB VRAM</p>
         </div>
         <div className="flex items-center gap-3">
           {rental.status === 'RUNNING' && rental.extended_until && (
             <SessionCountdownTimer
               extendedUntil={rental.extended_until}
               onExpiringSoon={() => {
-                toast.warning('세션이 15분 후 만료됩니다', {
-                  description: '연장하거나 작업을 저장하세요.',
+                toast.warning('Session expires in 15 minutes', {
+                  description: 'Extend your session or save your work.',
                 });
               }}
             />
@@ -331,17 +395,52 @@ export function RentalStatusCard({
         </div>
       </div>
 
+      {/* Node ID */}
+      <div className="mb-4">
+        <span className="text-xs text-gray-500 font-mono">Node: {rental.node_id.slice(0, 8)}...{rental.node_id.slice(-8)}</span>
+      </div>
+
       {/* Rental details */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-4 mb-4">
         <div>
-          <div className="text-sm text-gray-400 mb-1">임대 시작</div>
+          <div className="text-sm text-gray-400 mb-1">Started</div>
           <div className="text-white">{startedAgo}</div>
         </div>
         <div>
-          <div className="text-sm text-gray-400 mb-1">시간당 비용</div>
+          <div className="text-sm text-gray-400 mb-1">Price</div>
           <div className="text-white font-mono">{Number(pricePerHourDisplay).toFixed(2)} WLC/hr</div>
         </div>
       </div>
+
+      {/* Requested resources */}
+      {(rental.gpu_count || rental.cpu_cores || rental.memory_gb_req || rental.storage_gb) && (
+        <div className="grid grid-cols-4 gap-2 mb-6 p-3 bg-gray-800/50 rounded-lg">
+          {rental.gpu_count != null && (
+            <div className="text-center">
+              <div className="text-xs text-gray-500">GPU</div>
+              <div className="text-sm text-white font-medium">{rental.gpu_count}</div>
+            </div>
+          )}
+          {rental.cpu_cores != null && (
+            <div className="text-center">
+              <div className="text-xs text-gray-500">CPU</div>
+              <div className="text-sm text-white font-medium">{rental.cpu_cores} cores</div>
+            </div>
+          )}
+          {rental.memory_gb_req != null && (
+            <div className="text-center">
+              <div className="text-xs text-gray-500">RAM</div>
+              <div className="text-sm text-white font-medium">{rental.memory_gb_req} GB</div>
+            </div>
+          )}
+          {rental.storage_gb != null && (
+            <div className="text-center">
+              <div className="text-xs text-gray-500">Storage</div>
+              <div className="text-sm text-white font-medium">{rental.storage_gb} GB</div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Status-specific content */}
       {rental.status === 'PENDING' && (
@@ -388,24 +487,22 @@ export function RentalStatusCard({
               />
             </svg>
             <div>
-              <div className="text-gray-300 font-medium">임대 종료됨</div>
+              <div className="text-gray-300 font-medium">Rental Ended</div>
               <div className="text-sm text-gray-500">
-                이 세션은 더 이상 활성화되지 않습니다
+                This session is no longer active
               </div>
             </div>
           </div>
         </div>
       )}
 
+      {rental.status === 'FAILED' && (
+        <FailedContent rental={rental} />
+      )}
+
       {/* Action buttons */}
       {rental.status === 'RUNNING' && onStop && (
         <div className="flex justify-end gap-3">
-          <button
-            onClick={() => setIsExtensionModalOpen(true)}
-            className="px-4 py-2 rounded-lg text-sm font-medium bg-purple-600 hover:bg-purple-700 text-white transition-colors"
-          >
-            세션 연장
-          </button>
           <button
             onClick={handleStop}
             disabled={isStopLoading}
@@ -438,10 +535,10 @@ export function RentalStatusCard({
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                중지 중...
+                Stopping...
               </span>
             ) : (
-              '임대 종료'
+              'Stop Rental'
             )}
           </button>
         </div>

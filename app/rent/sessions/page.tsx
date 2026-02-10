@@ -40,14 +40,14 @@ export default function SessionsPage() {
               d="M10 19l-7-7m0 0l7-7m-7 7h18"
             />
           </svg>
-          마켓플레이스로 돌아가기
+          Back to Marketplace
         </Link>
 
         {/* Page header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-white mb-2">내 임대 세션</h1>
+          <h1 className="text-2xl font-bold text-white mb-2">My Rentals</h1>
           <p className="text-gray-400">
-            활성 임대를 관리하고 임대 내역을 확인하세요
+            Manage active rentals and view rental history
           </p>
         </div>
 

@@ -63,10 +63,10 @@ export function GasEstimateDisplay({
     return (
       <div className={`bg-gray-800/50 rounded-lg p-3 ${className}`}>
         <div className="text-sm text-gray-400 mb-1">
-          예상 가스비
+          Estimated Gas Fee
         </div>
         <div className="text-sm text-yellow-500">
-          가스비 추정 불가
+          Unable to estimate gas
         </div>
       </div>
     );
@@ -76,7 +76,7 @@ export function GasEstimateDisplay({
     <div className={`bg-gray-800/50 rounded-lg p-3 ${className}`}>
       {/* Label */}
       <div className="text-sm text-gray-400 mb-1">
-        예상 가스비
+        Estimated Gas Fee
       </div>
 
       {/* Value: crypto + fiat */}

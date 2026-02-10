@@ -51,6 +51,15 @@ function SkeletonRow() {
         <div className="h-5 w-16 bg-gray-700 rounded animate-pulse" />
       </td>
       <td className="px-4 py-4">
+        <div className="h-5 w-12 bg-gray-700 rounded animate-pulse" />
+      </td>
+      <td className="px-4 py-4">
+        <div className="h-5 w-10 bg-gray-700 rounded animate-pulse" />
+      </td>
+      <td className="px-4 py-4">
+        <div className="h-5 w-14 bg-gray-700 rounded animate-pulse" />
+      </td>
+      <td className="px-4 py-4">
         <div className="h-5 w-24 bg-gray-700 rounded animate-pulse" />
       </td>
       <td className="px-4 py-4">
@@ -83,10 +92,10 @@ function EmptyState() {
         />
       </svg>
       <h3 className="text-lg font-medium text-gray-300 mb-2">
-        사용 가능한 GPU가 없습니다
+        No GPUs Available
       </h3>
       <p className="text-sm text-gray-500 text-center max-w-sm">
-        현재 필터 조건에 맞는 GPU가 없습니다. 필터를 변경하거나 나중에 다시 확인해 주세요.
+        No GPUs match your current filters. Try adjusting filters or check back later.
       </p>
     </div>
   );
@@ -105,7 +114,7 @@ function EmptyState() {
  * - Sortable price column
  * - Loading skeleton state
  * - Empty state for no results
- * - Korean column headers: "GPU", "VRAM", "가격", "지역", "임대"
+ * - Column headers: "GPU", "VRAM", "Price", "Region", "Rent"
  *
  * @example
  * <GPUList
@@ -143,9 +152,39 @@ export function GPUList({
           </div>
         ),
       }),
+      columnHelper.accessor('availableGpus', {
+        id: 'gpuCount',
+        header: 'GPU Count',
+        cell: (info) => {
+          const row = info.row.original;
+          return (
+            <div className="text-gray-300">
+              {row.availableGpus}/{row.totalGpus}
+            </div>
+          );
+        },
+      }),
+      columnHelper.accessor('totalCpuCores', {
+        id: 'cpu',
+        header: 'CPU',
+        cell: (info) => (
+          <div className="text-gray-300">
+            {info.getValue()}c
+          </div>
+        ),
+      }),
+      columnHelper.accessor('totalMemoryGb', {
+        id: 'memory',
+        header: 'Memory',
+        cell: (info) => (
+          <div className="text-gray-300">
+            {info.getValue()} GB
+          </div>
+        ),
+      }),
       columnHelper.accessor('pricePerHour', {
         id: 'price',
-        header: '가격',
+        header: 'Price',
         sortingFn: priceSortingFn,
         cell: (info) => {
           const value = info.getValue();
@@ -158,13 +197,13 @@ export function GPUList({
       }),
       columnHelper.accessor('region', {
         id: 'region',
-        header: '지역',
+        header: 'Region',
         cell: (info) => {
           const region = info.getValue();
           const regionLabels: Record<string, string> = {
-            asia: '아시아',
-            us: '북미',
-            eu: '유럽',
+            asia: 'Asia',
+            us: 'North America',
+            eu: 'Europe',
           };
           return (
             <div className="text-gray-400">
@@ -175,7 +214,7 @@ export function GPUList({
       }),
       columnHelper.display({
         id: 'actions',
-        header: '임대',
+        header: 'Rent',
         cell: (info) => (
           <button
             onClick={() => onRent(info.row.original)}
@@ -185,7 +224,7 @@ export function GPUList({
               text-white transition-colors
             "
           >
-            임대하기
+            Rent
           </button>
         ),
       }),
@@ -213,9 +252,12 @@ export function GPUList({
             <tr className="border-b border-gray-700">
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">GPU</th>
               <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">VRAM</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">가격</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">지역</th>
-              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 hidden md:table-cell">임대</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">GPU Count</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">CPU</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Memory</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Price</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400">Region</th>
+              <th className="px-4 py-3 text-left text-sm font-medium text-gray-400 hidden md:table-cell">Rent</th>
             </tr>
           </thead>
           <tbody>
@@ -315,7 +357,7 @@ export function GPUList({
 
       {/* Mobile rent button - shows on row tap for mobile */}
       <div className="md:hidden mt-4 text-center text-sm text-gray-500">
-        행을 탭하여 GPU 상세 정보를 확인하세요
+        Tap a row to view GPU details
       </div>
     </div>
   );

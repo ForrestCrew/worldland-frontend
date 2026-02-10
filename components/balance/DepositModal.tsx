@@ -61,18 +61,18 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
   const getButtonText = (): string => {
     switch (status) {
       case 'idle':
-        return needsApproval ? '승인 후 입금' : '입금하기';
+        return needsApproval ? 'Approve & Deposit' : 'Deposit';
       case 'wallet':
-        return '지갑에서 서명...';
+        return 'Signing in wallet...';
       case 'pending':
       case 'confirmed':
-        return '처리 중...';
+        return 'Processing...';
       case 'success':
-        return '완료!';
+        return 'Complete!';
       case 'fail':
-        return '다시 시도';
+        return 'Try Again';
       default:
-        return '입금하기';
+        return 'Deposit';
     }
   };
 
@@ -143,7 +143,7 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-white">
-              토큰 입금
+              Deposit Tokens
             </h2>
             <button
               onClick={handleClose}
@@ -168,7 +168,7 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
           {/* Amount input */}
           <div className="mb-4">
             <label className="block text-sm text-gray-400 mb-2">
-              입금할 금액
+              Amount to Deposit
             </label>
             <div className="relative">
               <input
@@ -233,7 +233,7 @@ export function DepositModal({ isOpen, onClose }: DepositModalProps) {
           {/* Approval info text */}
           {needsApproval && status === 'idle' && (
             <p className="text-xs text-gray-500 mt-3 text-center">
-              첫 입금 시 토큰 승인이 필요합니다. 2단계로 진행됩니다.
+              Token approval required for first deposit. This will proceed in 2 steps.
             </p>
           )}
         </div>

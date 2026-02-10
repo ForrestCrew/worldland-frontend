@@ -85,16 +85,16 @@ export function useWalletInfo(): WalletInfo {
 
   if (!isConnected) {
     statusColor = 'gray';
-    statusText = '연결되지 않음';
+    statusText = 'Not Connected';
   } else if (isWrongNetwork) {
     statusColor = 'orange';
-    statusText = '잘못된 네트워크';
+    statusText = 'Wrong Network';
   } else if (!isAuthenticated) {
     statusColor = 'orange';
-    statusText = '인증 필요';
+    statusText = 'Auth Required';
   } else {
     statusColor = 'green';
-    statusText = '연결됨';
+    statusText = 'Connected';
   }
 
   return {

@@ -47,48 +47,48 @@ export type StatusMessages = Record<TransactionStatus, string>;
  * Used in TransactionStatus component and modals
  */
 export const defaultStatusMessages: StatusMessages = {
-  idle: '거래 대기 중',
-  wallet: '지갑에서 서명을 기다리는 중...',
-  pending: '트랜잭션 제출됨, 블록 확인 대기 중...',
-  confirmed: '블록 확인 중...',
-  success: '완료!',
-  fail: '트랜잭션 실패',
+  idle: 'Waiting for transaction',
+  wallet: 'Waiting for wallet signature...',
+  pending: 'Transaction submitted, waiting for block confirmation...',
+  confirmed: 'Confirming on blockchain...',
+  success: 'Complete!',
+  fail: 'Transaction failed',
 };
 
 /**
  * Deposit-specific status messages
  */
 export const depositStatusMessages: StatusMessages = {
-  idle: '입금 준비 중',
-  wallet: '지갑에서 서명을 기다리는 중...',
-  pending: '입금 트랜잭션 처리 중...',
-  confirmed: '블록 확인 중...',
-  success: '입금 완료!',
-  fail: '입금 실패',
+  idle: 'Ready to deposit',
+  wallet: 'Waiting for wallet signature...',
+  pending: 'Processing deposit transaction...',
+  confirmed: 'Confirming on blockchain...',
+  success: 'Deposit complete!',
+  fail: 'Deposit failed',
 };
 
 /**
  * Withdraw-specific status messages
  */
 export const withdrawStatusMessages: StatusMessages = {
-  idle: '출금 준비 중',
-  wallet: '지갑에서 서명을 기다리는 중...',
-  pending: '출금 트랜잭션 처리 중...',
-  confirmed: '블록 확인 중...',
-  success: '출금 완료!',
-  fail: '출금 실패',
+  idle: 'Ready to withdraw',
+  wallet: 'Waiting for wallet signature...',
+  pending: 'Processing withdrawal transaction...',
+  confirmed: 'Confirming on blockchain...',
+  success: 'Withdrawal complete!',
+  fail: 'Withdrawal failed',
 };
 
 /**
  * Approval-specific status messages (for ERC20 approve)
  */
 export const approvalStatusMessages: StatusMessages = {
-  idle: '승인 준비 중',
-  wallet: '토큰 승인을 위해 지갑에서 서명해 주세요...',
-  pending: '승인 트랜잭션 처리 중...',
-  confirmed: '블록 확인 중...',
-  success: '토큰 승인 완료!',
-  fail: '토큰 승인 실패',
+  idle: 'Ready for approval',
+  wallet: 'Please sign the token approval in your wallet...',
+  pending: 'Processing approval transaction...',
+  confirmed: 'Confirming on blockchain...',
+  success: 'Token approval complete!',
+  fail: 'Token approval failed',
 };
 
 /**

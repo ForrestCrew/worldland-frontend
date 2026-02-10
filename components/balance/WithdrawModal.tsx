@@ -73,7 +73,7 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
     }
 
     if (amountNum > availableNum) {
-      setValidationError('잔액이 부족합니다');
+      setValidationError('Insufficient balance');
     } else {
       setValidationError(null);
     }
@@ -83,18 +83,18 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
   const getButtonText = (): string => {
     switch (status) {
       case 'idle':
-        return '출금하기';
+        return 'Withdraw';
       case 'wallet':
-        return '지갑에서 서명...';
+        return 'Signing in wallet...';
       case 'pending':
       case 'confirmed':
-        return '처리 중...';
+        return 'Processing...';
       case 'success':
-        return '완료!';
+        return 'Complete!';
       case 'fail':
-        return '다시 시도';
+        return 'Try Again';
       default:
-        return '출금하기';
+        return 'Withdraw';
     }
   };
 
@@ -178,7 +178,7 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-white">
-              토큰 출금
+              Withdraw Tokens
             </h2>
             <button
               onClick={handleClose}
@@ -203,7 +203,7 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
           {/* Available balance */}
           <div className="mb-4 p-3 bg-gray-800/50 rounded-lg">
             <div className="text-sm text-gray-400 mb-1">
-              출금 가능 금액
+              Available Balance
             </div>
             <div className="text-lg font-mono text-white">
               {availableBalance} WLC
@@ -213,7 +213,7 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
           {/* Amount input */}
           <div className="mb-4">
             <label className="block text-sm text-gray-400 mb-2">
-              출금할 금액
+              Amount to Withdraw
             </label>
             <div className="relative">
               <input
@@ -237,7 +237,7 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
                   disabled={status !== 'idle' && status !== 'fail'}
                   className="px-2 py-1 bg-purple-600 hover:bg-purple-700 rounded text-xs font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  최대
+                  Max
                 </button>
                 <span className="text-gray-400">WLC</span>
               </div>

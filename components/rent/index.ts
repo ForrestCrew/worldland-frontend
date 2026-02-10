@@ -26,6 +26,8 @@ export * from './SessionList';
 // GPU marketplace
 export * from './GPUFilterBar';
 export * from './GPUList';
+export * from './GPUTypeCard';
+export * from './GPUDeployPanel';
 export * from './RentalStartModal';
 
 // Image selection (Phase 24)

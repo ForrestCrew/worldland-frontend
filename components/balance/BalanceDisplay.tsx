@@ -94,7 +94,7 @@ export function BalanceDisplay({
 
       {/* Balance value: crypto */}
       <div className="text-2xl font-bold text-white">
-        {formatted} {tokenSymbol}
+        {parseFloat(formatted).toFixed(2)} {tokenSymbol}
       </div>
 
       {/* Balance value: fiat */}

@@ -206,7 +206,7 @@ export function WithdrawModal({ isOpen, onClose }: WithdrawModalProps) {
               Available Balance
             </div>
             <div className="text-lg font-mono text-white">
-              {availableBalance} WLC
+              {parseFloat(availableBalance).toFixed(2)} WLC
             </div>
           </div>
 

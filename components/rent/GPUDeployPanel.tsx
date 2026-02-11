@@ -4,6 +4,8 @@ import { useState, useCallback, useEffect } from 'react';
 import { useAvailableGPUs, type AvailableGPU } from '@/hooks/useAvailableGPUs';
 import type { GPUTypeInfo } from '@/hooks/useGPUTypes';
 import { RentalStartModal } from './RentalStartModal';
+import { useAuth } from '@/contexts/AuthContext';
+import { ApiError } from '@/lib/api';
 
 interface GPUDeployPanelProps {
   gpu: GPUTypeInfo;
@@ -11,7 +13,10 @@ interface GPUDeployPanelProps {
 }
 
 export function GPUDeployPanel({ gpu, onBack }: GPUDeployPanelProps) {
-  const { gpus: nodes, isLoading } = useAvailableGPUs({ gpuModel: gpu.gpuModel });
+  const { gpus: nodes, isLoading, error } = useAvailableGPUs({ gpuModel: gpu.gpuModel });
+  const { isAuthenticated, isAuthenticating, requestSignature } = useAuth();
+
+  const isAuthError = error instanceof ApiError && error.status === 401;
   const [selectedNode, setSelectedNode] = useState<AvailableGPU | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -51,19 +56,33 @@ export function GPUDeployPanel({ gpu, onBack }: GPUDeployPanelProps) {
 
       {/* GPU header */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
-        <h2 className="text-2xl font-bold text-white mb-2">
+        <h2 className="text-2xl font-bold text-white">
           Deploy {gpu.gpuModel}
         </h2>
-        <p className="text-gray-400">
-          {Number(gpu.pricePerHour || '0').toFixed(2)} WLC/hr
-        </p>
       </div>
 
       {/* Node selection */}
       <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6">
         <h3 className="text-sm font-medium text-gray-300 mb-4">Select Node</h3>
 
-        {isLoading ? (
+        {isAuthError || (!isAuthenticated && !isLoading && nodes.length === 0) ? (
+          <div className="text-center py-8">
+            <svg className="w-12 h-12 text-gray-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <p className="text-gray-300 font-medium mb-2">Sign in required</p>
+            <p className="text-gray-500 text-sm mb-4">
+              Please sign in with your wallet to browse available nodes.
+            </p>
+            <button
+              onClick={() => requestSignature('user')}
+              disabled={isAuthenticating}
+              className="px-6 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-600/50 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              {isAuthenticating ? 'Signing...' : 'Sign In'}
+            </button>
+          </div>
+        ) : isLoading ? (
           <div className="space-y-3">
             {[1, 2].map((i) => (
               <div key={i} className="h-16 bg-gray-800 rounded-lg animate-pulse" />
@@ -96,10 +115,9 @@ export function GPUDeployPanel({ gpu, onBack }: GPUDeployPanelProps) {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-mono text-purple-400">
-                    {Number(node.pricePerHour || '0').toFixed(2)}
+                  <div className="text-xs text-gray-500">
+                    {node.availableGpus} GPU available
                   </div>
-                  <div className="text-xs text-gray-500">WLC/hr</div>
                 </div>
               </button>
             ))}

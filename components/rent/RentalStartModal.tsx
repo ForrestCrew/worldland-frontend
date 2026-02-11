@@ -141,8 +141,10 @@ export function RentalStartModal({
     const CPU_OPTIONS = [1, 2, 4, 8, 16, 32, 64];
     const MEMORY_OPTIONS = [4, 8, 16, 32, 64, 128, 256];
 
-    const validCpu = CPU_OPTIONS.filter(c => gpu.totalCpuCores <= 0 || c <= gpu.totalCpuCores);
-    const validMem = MEMORY_OPTIONS.filter(m => gpu.totalMemoryGb <= 0 || m <= gpu.totalMemoryGb);
+    const availCpu = gpu.availableCpuCores > 0 ? gpu.availableCpuCores : gpu.totalCpuCores;
+    const availMem = gpu.availableMemoryGb > 0 ? gpu.availableMemoryGb : gpu.totalMemoryGb;
+    const validCpu = CPU_OPTIONS.filter(c => availCpu <= 0 || c <= availCpu);
+    const validMem = MEMORY_OPTIONS.filter(m => availMem <= 0 || m <= availMem);
 
     setResources((prev) => ({
       gpuCount: Math.min(prev.gpuCount, gpu.availableGpus || 1),

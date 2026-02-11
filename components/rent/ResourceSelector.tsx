@@ -24,11 +24,13 @@ export function ResourceSelector({ gpu, value, onChange }: ResourceSelectorProps
     { length: gpu.availableGpus || 1 },
     (_, i) => i + 1
   );
+  const availCpu = gpu.availableCpuCores > 0 ? gpu.availableCpuCores : gpu.totalCpuCores;
+  const availMem = gpu.availableMemoryGb > 0 ? gpu.availableMemoryGb : gpu.totalMemoryGb;
   const cpuOptions = CPU_OPTIONS.filter(
-    (c) => gpu.totalCpuCores <= 0 || c <= gpu.totalCpuCores
+    (c) => availCpu <= 0 || c <= availCpu
   );
   const memoryOptions = MEMORY_OPTIONS.filter(
-    (m) => gpu.totalMemoryGb <= 0 || m <= gpu.totalMemoryGb
+    (m) => availMem <= 0 || m <= availMem
   );
   // Dynamic storage options based on node's actual ephemeral-storage capacity
   const maxStorage = gpu.maxStorageGb || 40; // fallback 40GB if not reported
@@ -79,9 +81,9 @@ export function ResourceSelector({ gpu, value, onChange }: ResourceSelectorProps
                 </option>
               ))}
             </select>
-            {gpu.totalCpuCores > 0 && (
+            {availCpu > 0 && (
               <span className="text-xs text-gray-500 whitespace-nowrap">
-                / {gpu.totalCpuCores}
+                / {availCpu}
               </span>
             )}
           </div>
@@ -104,9 +106,9 @@ export function ResourceSelector({ gpu, value, onChange }: ResourceSelectorProps
                 </option>
               ))}
             </select>
-            {gpu.totalMemoryGb > 0 && (
+            {availMem > 0 && (
               <span className="text-xs text-gray-500 whitespace-nowrap">
-                / {gpu.totalMemoryGb}
+                / {availMem}
               </span>
             )}
           </div>

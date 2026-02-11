@@ -43,8 +43,12 @@ export interface AvailableGPU {
   availableGpus: number;
   /** Total CPU cores on this node */
   totalCpuCores: number;
+  /** Available CPU cores (after other sessions) */
+  availableCpuCores: number;
   /** Total memory in GB on this node */
   totalMemoryGb: number;
+  /** Available memory in GB (after other sessions) */
+  availableMemoryGb: number;
   /** Max ephemeral storage in GB available on this node */
   maxStorageGb: number;
   /** Price per second in wei string */
